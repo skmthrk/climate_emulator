@@ -36,7 +36,7 @@ def build_data(input_dir, output_dir, model_id, experiment_id, var_id):
     if model_id in ["HadGEM3-GC31-LL"]:
         variant_label = 'r1i1p1f3'
     
-    pattern = r'{}_.*{}_{}_{}.*\.nc$'.format(var_id, model_id, experiment_id, variant_label)
+    pattern = rf'{var_id}_.*{model_id}_{experiment_id}_{variant_label}.*\.nc$'
     file_names = list_files(input_dir, pattern)
 
     output_data = []
@@ -125,8 +125,6 @@ def main():
     model_id = args.model_id
     var_ids = args.var_ids
 
-    logger.info(f"Start processing data for model: {model_id}")
-
     calibration_experiment_ids = [
         'piControl',
         'abrupt-2xCO2',
@@ -151,8 +149,6 @@ def main():
 
         for experiment_id in experiment_ids:
             build_data(input_dir, output_dir, model_id, experiment_id, var_id)
-
-    logger.info(f"Finished processing data for model: {model_id}")
 
 if __name__ == '__main__':
     main()

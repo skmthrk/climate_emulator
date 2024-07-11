@@ -1,29 +1,32 @@
 ## 実験データの処理
 
-まず，各種実験（`piControl`，`abrupt-2xCO2`，`abrupt-4xCO2`，`1pctCO2`，`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`）のそれぞれについて，
-必要な変数（`tas`，`rsdt`，`rsut`，`rlut`，`areacella`）のデータを[ESGF](https://esgf.llnl.gov/)からダウンロードします．
-MIROC6であれば，`data_raw/required.txt`に挙げたデータになります．
-これを全て`data_raw/CMIP6`に置きます．面積データ（`areacella*.nc`）はなくても動きます．
+各種実験（`piControl`，`abrupt-2xCO2`，`abrupt-4xCO2`，`1pctCO2`，`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`）のそれぞれについて，
+必要な変数（`tas`，`rsdt`，`rsut`，`rlut`，`areacella`）のデータ（例えばMIROC6であれば，`data_raw/required.txt`に挙げたもの）を[ESGF](https://esgf.llnl.gov/)からダウンロードておく．
+これを全て`data_raw/CMIP6`に置く．
+面積データ（`areacella*.nc`）は必ずしも必要でない．
 
-その上で
+全球年平均の時系列データ（csvファイル）の作成：
 ```
 python process_cmip_data.py [--model_id MIROC6]
 ```
-とすれば`data_processed`に全球年平均の時系列データ（csvファイル）が作成されます．
-`model_id`はダウンロードしたデータに応じて適宜変更（デフォルトは`MIROC6`）．
+引数の`model_id`はダウンロードしたデータに応じて適宜変更（デフォルトは`MIROC6`）．
 
 ## 実験データのプロット
 
+コントロール実験，倍増実験，漸増実験：
 ```
 python plot_experiment_tas.py [--model_id MIROC6]
 ```
 ![気候モデル（MIROC6）の実験データ](output/fig_plot_experiment_tas.svg)
+
+歴史実験：
 
 ```
 python plot_historical_tas.py [--model_id MIROC6]
 ```
 ![気候モデルによる歴史実験](output/fig_plot_historical_tas.svg)
 
+シナリオ実験：
 ```
 python plot_scenario_tas.py [--model_id MIROC6]
 ```
@@ -31,16 +34,16 @@ python plot_scenario_tas.py [--model_id MIROC6]
 
 ## エミュレータのカリブレーション
 
-2層のボックスモデルのカリブレーション（`abrupt-4xCO2`に基づく）を行います．
+2層のボックスモデルのカリブレーション（`abrupt-4xCO2`に基づく）：
 ```
 Rscript calibrate_emulator.r [MIROC6]
 ```
-推定結果が`output`フォルダに保存されます．
+推定結果は`output`フォルダに保存される．
 
 ## エミュレータの性能評価
 
-エミュレータの内的妥当性（`abrupt-4xCO2`）と
-外的妥当性（`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`）を評価します．
+カリブレイトされたエミュレータの内的妥当性（`abrupt-4xCO2`）と
+外的妥当性（`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`）を評価：
 ```
 python evaluate_emulator.py [--model_id MIROC6]
 ```
