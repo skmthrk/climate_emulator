@@ -1,6 +1,6 @@
 ## 実験データの処理
 
-まず，実験（`piControl`，`abrupt-2xCO2`，`abrupt-4xCO2`，`1pctCO2`，`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`）のそれぞれについて，
+まず，各種実験（`piControl`，`abrupt-2xCO2`，`abrupt-4xCO2`，`1pctCO2`，`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`）のそれぞれについて，
 必要な変数（`tas`，`rsdt`，`rsut`，`rlut`，`areacella`）のデータを[ESGF](https://esgf.llnl.gov/)からダウンロードします．
 MIROC6であれば，`data_raw/required.txt`に挙げたデータになります．
 これを全て`data_raw/CMIP6`に置きます．面積データ（`areacella*.nc`）はなくても動きます．
