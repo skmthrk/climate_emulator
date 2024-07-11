@@ -2,6 +2,7 @@ import os
 import re
 import csv
 import sys
+import argparse
 
 import numpy as np
 import xarray as xr
@@ -27,6 +28,11 @@ baseline_concentration = {
     'ch4': 720 * unit_conversion['ch4'][0],
     'n2o': 270 * unit_conversion['n2o'][0],
 }
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_id", default="MIROC6", help="model ID")
+    return parser.parse_args()
 
 def load_timeseries(var_id, model_id, variant_label, experiment_id, data_dir):
     """
@@ -484,7 +490,9 @@ def set_panel_id(ax, letter):
 
 def main():
 
-    model_id = 'MIROC6'
+    args = parse_args()
+    model_id = args.model_id
+
     var_id = 'tas'
     variant_label = 'r1i1p1f1'
     

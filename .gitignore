@@ -1,4 +1,5 @@
 .env
 .DS_Store
-/data_raw/CMIP6/*
+/data_raw/CMIP6/*.nc
 __pycache__
+log.txt

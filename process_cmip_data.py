@@ -11,8 +11,6 @@ logger = make_logger()
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input_dir", default="./data_raw/CMIP6", help="input directory")
-    parser.add_argument("--output_dir", default="./data_processed", help="output directory")
     parser.add_argument("--model_id", default="MIROC6", help="model ID")
     parser.add_argument("--var_ids", nargs='+', default=['tas', 'rsdt', 'rsut', 'rlut'], help="variable IDs")
     return parser.parse_args()
@@ -119,9 +117,11 @@ def build_data(input_dir, output_dir, model_id, experiment_id, var_id):
         f.write('\n'.join(output))
 
 def main():
+
+    input_dir = './data_raw/CMIP6'
+    output_dir = './data_processed'
+
     args = parse_args()
-    input_dir = args.input_dir
-    output_dir = args.output_dir
     model_id = args.model_id
     var_ids = args.var_ids
 

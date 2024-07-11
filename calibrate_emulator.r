@@ -4,7 +4,6 @@ library(expm)
 library(FKF)
 
 # Constants
-EPSILON <- 1e-12
 MAX_EVAL <- 1e+05
 XTOL_REL <- 1e-5
 
@@ -100,7 +99,7 @@ BuildCdWd <- function(kappa, epsilon) {
         c(0, 1, 0),
         c(1, -kappa[1] - epsilon, epsilon)
     )
-    Wd <- diag(EPSILON, nrow(Cd))
+    Wd <- diag(1e-12, nrow(Cd))
     return(list(Cd=Cd, Wd=Wd))
 }
 
@@ -269,8 +268,13 @@ main <- function(model, experiment, variant) {
     })
 }
 
-# Example usage
-model <- "MIROC6"
+args <- commandArgs(trailingOnly=TRUE)
+if (length(args) == 0) {
+    model <- "MIROC6"
+} else {
+    model <- args[1]
+}
+
 experiment <- "abrupt-4xCO2"
 variant <- "r1i1p1f1"
 

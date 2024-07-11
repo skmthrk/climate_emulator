@@ -1,6 +1,7 @@
 import os
 import re
 import csv
+import argparse
 
 import numpy as np
 import matplotlib
@@ -10,6 +11,11 @@ from utils import make_logger, load_japanese_font, colors
 
 logger = make_logger()
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_id", default="MIROC6", help="model ID")
+    return parser.parse_args()
+    
 def load_data(model_id, var_id, variant_label, experiment_ids):
     """
     Load data from CSV files matching the specified conditions.
@@ -143,8 +149,9 @@ def plot_experiments(model_id, var_id, variant_label):
 
 def main():
 
+    args = parse_args()
+    model_id = args.model_id
     var_id = 'tas'
-    model_id = 'MIROC6'
     variant_label = 'r1i1p1f1'
 
     fig = plot_experiments(model_id, var_id, variant_label)

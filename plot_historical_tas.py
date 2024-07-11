@@ -1,6 +1,7 @@
 import os
 import re
 import csv
+import argparse
 
 import numpy as np
 import xarray as xr
@@ -13,6 +14,11 @@ from utils import list_files, make_logger, load_japanese_font, plot_contourf
 
 logger = make_logger()
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_id", default="MIROC6", help="model ID")
+    return parser.parse_args()
+    
 def normalize(years, values, base):
     """
     Normalize values relative to base period.
@@ -231,7 +237,8 @@ def plot_historical(model_id, variant_label):
 
 def main():
 
-    model_id = 'MIROC6'
+    args = parse_args()
+    model_id = args.model_id
     variant_label = 'r1i1p1f1'
 
     fig = plot_historical(model_id, variant_label)

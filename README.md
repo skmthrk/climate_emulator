@@ -1,76 +1,37 @@
-## データのダウンロード
+## 実験データの処理
 
-[ESGF](https://esgf.llnl.gov/)から次のファイルをダウンロードして`data_raw/CMIP6`に置きます．areacellaはなくても動きます．
+まず，実験（`piControl`，`abrupt-2xCO2`，`abrupt-4xCO2`，`1pctCO2`，`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`）のそれぞれについて，
+必要な変数（`tas`，`rsdt`，`rsut`，`rlut`，`areacella`）のデータを[ESGF](https://esgf.llnl.gov/)からダウンロードします．
+MIROC6であれば，`data_raw/required.txt`に挙げたデータになります．
+これを全て`data_raw/CMIP6`に置きます．面積データ（`areacella*.nc`）はなくても動きます．
 
-- areacella_fx_MIROC6_1pctCO2_r1i1p1f1_gn.nc
-- areacella_fx_MIROC6_abrupt-4xCO2_r1i1p1f1_gn.nc
-- areacella_fx_MIROC6_historical_r1i1p1f1_gn.nc
-- areacella_fx_MIROC6_piControl_r1i1p1f1_gn.nc
-- areacella_fx_MIROC6_ssp119_r1i1p1f1_gn.nc
-- areacella_fx_MIROC6_ssp245_r1i1p1f1_gn.nc
-- areacella_fx_MIROC6_ssp370_r1i1p1f1_gn.nc
-- areacella_fx_MIROC6_ssp460_r1i1p1f1_gn.nc
-- areacella_fx_MIROC6_ssp585_r1i1p1f1_gn.nc
-- rlut_Amon_MIROC6_1pctCO2_r1i1p1f1_gn_320001-329912.nc
-- rlut_Amon_MIROC6_1pctCO2_r1i1p1f1_gn_330001-334912.nc
-- rlut_Amon_MIROC6_abrupt-4xCO2_r1i1p1f1_gn_320001-329912.nc
-- rlut_Amon_MIROC6_abrupt-4xCO2_r1i1p1f1_gn_330001-334912.nc
-- rlut_Amon_MIROC6_abrupt-4xCO2_r1i1p1f1_gn_335001-344912.nc
-- rlut_Amon_MIROC6_piControl_r1i1p1f1_gn_320001-329912.nc
-- rlut_Amon_MIROC6_piControl_r1i1p1f1_gn_330001-339912.nc
-- rlut_Amon_MIROC6_piControl_r1i1p1f1_gn_340001-349912.nc
-- rlut_Amon_MIROC6_piControl_r1i1p1f1_gn_350001-359912.nc
-- rlut_Amon_MIROC6_piControl_r1i1p1f1_gn_360001-369912.nc
-- rlut_Amon_MIROC6_piControl_r1i1p1f1_gn_370001-379912.nc
-- rlut_Amon_MIROC6_piControl_r1i1p1f1_gn_380001-389912.nc
-- rlut_Amon_MIROC6_piControl_r1i1p1f1_gn_390001-399912.nc
-- rsdt_Amon_MIROC6_1pctCO2_r1i1p1f1_gn_320001-329912.nc
-- rsdt_Amon_MIROC6_1pctCO2_r1i1p1f1_gn_330001-334912.nc
-- rsdt_Amon_MIROC6_abrupt-4xCO2_r1i1p1f1_gn_320001-329912.nc
-- rsdt_Amon_MIROC6_abrupt-4xCO2_r1i1p1f1_gn_330001-334912.nc
-- rsdt_Amon_MIROC6_abrupt-4xCO2_r1i1p1f1_gn_335001-344912.nc
-- rsdt_Amon_MIROC6_historical_r1i1p1f1_gn_185001-194912.nc
-- rsdt_Amon_MIROC6_historical_r1i1p1f1_gn_195001-201412.nc
-- rsdt_Amon_MIROC6_piControl_r1i1p1f1_gn_320001-329912.nc
-- rsdt_Amon_MIROC6_piControl_r1i1p1f1_gn_330001-339912.nc
-- rsdt_Amon_MIROC6_piControl_r1i1p1f1_gn_340001-349912.nc
-- rsdt_Amon_MIROC6_piControl_r1i1p1f1_gn_350001-359912.nc
-- rsdt_Amon_MIROC6_piControl_r1i1p1f1_gn_360001-369912.nc
-- rsdt_Amon_MIROC6_piControl_r1i1p1f1_gn_370001-379912.nc
-- rsdt_Amon_MIROC6_piControl_r1i1p1f1_gn_380001-389912.nc
-- rsdt_Amon_MIROC6_piControl_r1i1p1f1_gn_390001-399912.nc
-- rsut_Amon_MIROC6_1pctCO2_r1i1p1f1_gn_320001-329912.nc
-- rsut_Amon_MIROC6_1pctCO2_r1i1p1f1_gn_330001-334912.nc
-- rsut_Amon_MIROC6_abrupt-4xCO2_r1i1p1f1_gn_320001-329912.nc
-- rsut_Amon_MIROC6_abrupt-4xCO2_r1i1p1f1_gn_330001-334912.nc
-- rsut_Amon_MIROC6_abrupt-4xCO2_r1i1p1f1_gn_335001-344912.nc
-- rsut_Amon_MIROC6_historical_r1i1p1f1_gn_185001-194912.nc
-- rsut_Amon_MIROC6_historical_r1i1p1f1_gn_195001-201412.nc
-- rsut_Amon_MIROC6_piControl_r1i1p1f1_gn_320001-329912.nc
-- rsut_Amon_MIROC6_piControl_r1i1p1f1_gn_330001-339912.nc
-- rsut_Amon_MIROC6_piControl_r1i1p1f1_gn_340001-349912.nc
-- rsut_Amon_MIROC6_piControl_r1i1p1f1_gn_350001-359912.nc
-- rsut_Amon_MIROC6_piControl_r1i1p1f1_gn_360001-369912.nc
-- rsut_Amon_MIROC6_piControl_r1i1p1f1_gn_370001-379912.nc
-- rsut_Amon_MIROC6_piControl_r1i1p1f1_gn_380001-389912.nc
-- rsut_Amon_MIROC6_piControl_r1i1p1f1_gn_390001-399912.nc
-- tas_Amon_MIROC6_1pctCO2_r1i1p1f1_gn_320001-329912.nc
-- tas_Amon_MIROC6_1pctCO2_r1i1p1f1_gn_330001-334912.nc
-- tas_Amon_MIROC6_abrupt-4xCO2_r1i1p1f1_gn_320001-329912.nc
-- tas_Amon_MIROC6_abrupt-4xCO2_r1i1p1f1_gn_330001-334912.nc
-- tas_Amon_MIROC6_abrupt-4xCO2_r1i1p1f1_gn_335001-344912.nc
-- tas_Amon_MIROC6_historical_r1i1p1f1_gn_185001-194912.nc
-- tas_Amon_MIROC6_historical_r1i1p1f1_gn_195001-201412.nc
-- tas_Amon_MIROC6_piControl_r1i1p1f1_gn_320001-329912.nc
-- tas_Amon_MIROC6_piControl_r1i1p1f1_gn_330001-339912.nc
-- tas_Amon_MIROC6_piControl_r1i1p1f1_gn_340001-349912.nc
-- tas_Amon_MIROC6_piControl_r1i1p1f1_gn_350001-359912.nc
-- tas_Amon_MIROC6_piControl_r1i1p1f1_gn_360001-369912.nc
-- tas_Amon_MIROC6_piControl_r1i1p1f1_gn_370001-379912.nc
-- tas_Amon_MIROC6_piControl_r1i1p1f1_gn_380001-389912.nc
-- tas_Amon_MIROC6_piControl_r1i1p1f1_gn_390001-399912.nc
-- tas_Amon_MIROC6_ssp119_r1i1p1f1_gn_201501-210012.nc
-- tas_Amon_MIROC6_ssp245_r1i1p1f1_gn_201501-210012.nc
-- tas_Amon_MIROC6_ssp370_r1i1p1f1_gn_201501-210012.nc
-- tas_Amon_MIROC6_ssp460_r1i1p1f1_gn_201501-210012.nc
-- tas_Amon_MIROC6_ssp585_r1i1p1f1_gn_201501-210012.nc
+その上で
+```
+python process_cmip_data.py [--model_id MIROC6]
+```
+とすれば`data_processed`に全球年平均の時系列データ（csvファイル）が作成されます．
+`model_id`はダウンロードしたデータに応じて適宜変更（デフォルトは`MIROC6`）．
+
+## 実験データのプロット
+
+```
+python plot_experiment_tas.py [--model_id MIROC6]
+python plot_historical_tas.py [--model_id MIROC6]
+python plot_scenario_tas.py [--model_id MIROC6]
+```
+図は全て`output`フォルダに作成されます．
+
+## エミュレータのカリブレーション
+
+```
+Rscript calibrate_emulator.r [MIROC6]
+```
+推定結果が`output`フォルダに保存されます．
+
+## エミュレータの性能評価
+
+```
+python evaluate_emulator.py [--model_id MIROC6]
+```
+図が`output`フォルダに保存されます．
+
