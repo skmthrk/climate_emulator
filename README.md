@@ -16,13 +16,22 @@ python process_cmip_data.py [--model_id MIROC6]
 
 ```
 python plot_experiment_tas.py [--model_id MIROC6]
+```
+![気候モデル（MIROC6）の実験データ](output/fig_plot_experiment_tas.svg)
+
+```
 python plot_historical_tas.py [--model_id MIROC6]
+```
+![気候モデルによる歴史実験](output/fig_plot_historical_tas.svg)
+
+```
 python plot_scenario_tas.py [--model_id MIROC6]
 ```
-図は全て`output`フォルダに作成されます．
+![シナリオ実験](output/fig_plot_scenario_tas.svg)
 
 ## エミュレータのカリブレーション
 
+2層のボックスモデルのカリブレーション（`abrupt-4xCO2`に基づく）を行います．
 ```
 Rscript calibrate_emulator.r [MIROC6]
 ```
@@ -30,10 +39,12 @@ Rscript calibrate_emulator.r [MIROC6]
 
 ## エミュレータの性能評価
 
+エミュレータの内的妥当性（`abrupt-4xCO2`）と
+外的妥当性（`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`）を評価します．
 ```
 python evaluate_emulator.py [--model_id MIROC6]
 ```
-図が`output`フォルダに保存されます．
+![エミュレータのカリブレーションと性能評価](output/fig_evaluate_emulator.svg)
 
 ## データソース
 
@@ -41,3 +52,4 @@ python evaluate_emulator.py [--model_id MIROC6]
 - Tatebe, Hiroaki; Watanabe, Masahiro (2018). MIROC MIROC6 model output prepared for CMIP6 CMIP.Earth System Grid Federation. https://doi.org/10.22033/ESGF/CMIP6.881
 - Meinshausen, M., Nicholls, Z. R. J., Lewis, J., Gidden, M. J., Vogel, E., Freund, M., Beyerle, U., Gessner, C., Nauels, A., Bauer, N., Canadell, J. G., Daniel, J. S., John, A., Krummel, P. B., Luderer, G., Meinshausen, N., Montzka, S. A., Rayner, P. J., Reimann, S., Smith, S. J., van den Berg, M., Velders, G. J. M., Vollmer, M. K., and Wang, R. H. J. (2020). The shared socio-economic pathway (SSP) greenhouse gas concentrations and their extensions to 2500, Geoscientific Model Development, 13, 3571–3605, https://doi.org/10.5194/gmd-13-3571-2020
 - Smith, Christopher J. (2019, October 21). Effective Radiative Forcing from Shared Socioeconomic Pathways (Version v0.3.1). Zenodo. http://doi.org/10.5281/zenodo.3515339
+- [Noto Font](https://fonts.google.com/noto) is licensed under the SIL Open Font License, Version 1.1. Copyright 2012 Google Inc. All Rights Reserved. This license is available at: http://scripts.sil.org/OFL
