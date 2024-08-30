@@ -79,7 +79,6 @@ class ForcingModel:
             ubar = self.ubars[var_id]
             x_vals = self.forcing_func(u, parameters) - self.forcing_func(ubar, parameters)
             loss += np.linalg.norm(x_vals - x_obs)
-        print(loss)
         return loss
 
     def estimate_parameters(self, var_id):
