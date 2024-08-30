@@ -6,12 +6,14 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-from utils import make_logger, colors
+from utils import make_logger
 logger = make_logger()
 
 matplotlib.rc('axes', lw=0.25, edgecolor='k')
 
 def main():
+
+    logger.info('Estimating the savings rate')
 
     file_path = './data_raw/gross_savings.csv'
     df = pd.read_csv(file_path)
@@ -27,9 +29,11 @@ def main():
     savings_rates = np.array(savings_rates)
     savings_rate_mean = sum(savings_rates)/len(savings_rates)
 
-    with open(os.path.join('./output/parameter_savings_rate.csv'), 'w') as f:
+    csv_path = './output/parameter_savings_rate.csv'
+    with open(csv_path, 'w') as f:
         f.write(',x\n')
         f.write('1-alpha,{}\n'.format(savings_rate_mean))
+    logger.info(f"Parameter values saved at {csv_path}")
 
     figname = f"./output/fig_savings_rate.svg"
     fig = plt.figure(frameon=False)
@@ -45,6 +49,7 @@ def main():
         ax.spines[posi].set_visible(False)
     fig.tight_layout()
     fig.savefig(figname)
+    logger.info(f"Plot saved at {figname}")
 
 if __name__ == '__main__':
     main()
