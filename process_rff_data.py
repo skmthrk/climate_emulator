@@ -48,7 +48,7 @@ def build_rff_gdp_data(historical_gdp_pop_data):
     idx = np.where(years_hist == 2020)[0][0]
 
     # prepare output dir
-    out_dir = './output/gdp_pop'
+    out_dir = './data_processed/gdp_pop'
     try:
         os.mkdir(out_dir)
     except FileExistsError:

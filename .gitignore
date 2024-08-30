@@ -6,4 +6,4 @@ log.txt
 /data_raw/RFF/pop_income/*.feather
 /data_raw/RFF/emissions/*.csv
 /data_raw/Bauer2023/*.csv
-/output/gdp_pop/*.csv
+/data_processed/gdp_pop/*.csv
