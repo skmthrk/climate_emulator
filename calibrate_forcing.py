@@ -25,6 +25,7 @@ class ForcingModel:
         self.var_types = ['concentration', 'forcing']
         self.methods = ['Nelder-Mead', 'Powell', 'SLSQP', 'TNC', 'COBYLA', 'BFGS', 'Newton-CG', 'L-BFGS-B']
         self.datasets = self._build_datasets()
+        self.parameters_estimate = {}
 
     def _build_datasets(self):
         """ load RCMIP dataset
@@ -65,12 +66,12 @@ class ForcingModel:
 
     @staticmethod
     def forcing_func(u, parameters):
-        alpha, theta = parameters
-        if theta == 0:
-            return alpha * np.log(u)
-        return alpha * (1/theta)*(u**theta - 1)
+        phi, zeta = parameters
+        if zeta == 0:
+            return phi * np.log(u)
+        return phi * (1/zeta)*(u**zeta - 1)
 
-    def loss_func(self, parameters, var_id):
+    def loss_function(self, parameters, var_id):
         loss = 0
         for scenario in self.scenarios:
             x_obs = self.datasets['forcing'][scenario][var_id]
@@ -81,53 +82,71 @@ class ForcingModel:
         print(loss)
         return loss
 
-# xxxxx Thu Aug 29 16:51:44 JST 2024
+    def estimate_parameters(self, var_id):
 
-for var_id in ['co2', 'ch4', 'n2o']:
-    print('===', var_id)
+        logger.info(f"Estimating parameters for {var_id} forcing model")
 
-    units = 'W m-2'
-    parameters = [1, 0]
-    methods = ['Nelder-Mead', 'Powell', 'SLSQP', 'TNC', 'COBYLA', 'BFGS', 'Newton-CG', 'L-BFGS-B']
-    method = methods[0]
-    if var_id == 'co2':
-        bounds = [(None, None), (0, 0)]
-    else:
-        bounds = [(None, None), (None, None)]
-    tol = 1e-11
-    maxiter = 5000
-    res = optimize.minimize(fun=lambda parameters:Loss(parameters, var_id=var_id), x0=parameters, method=method, bounds=bounds, tol=tol, options={'maxiter': maxiter})
-    print(' method:', method)
-    print(' message:', res.message)
-    print(' nit:', res.nit)
-    print(' status:', res.status)
-    print(' success:', res.success)
-    print(' min:', res.fun)
-    print(' minimizer:', list(res.x))
+        parameters = [1, 0] # initial guess
+        bounds = [(None, None), (0, 0)] if var_id == 'co2' else [(None, None), (None, None)]
+        method = self.methods[0]
+        tol = 1e-11
+        maxiter = 5000
+        res = optimize.minimize(fun=lambda parameters:self.loss_function(parameters, var_id=var_id), x0=parameters, method=method, bounds=bounds, tol=tol, options={'maxiter': maxiter})
+        parameters = list(res.x)
 
-    with open(f"./output/parameter_{var_id}_forcing.csv", 'w') as f:
-        keys = ['var_id', 'alpha', 'theta']
-        vals = [var_id] + [str(para) for para in res.x]
-        f.write(','.join(keys))
-        f.write('\n')
-        f.write(','.join(vals))
+        logger.info(f"Optimization result: {res.message} in {res.nit} iterations")
+        logger.info(f"Minvalue = {res.fun} at {parameters}")
 
-    alpha, theta = res.x
+        csv_path = f"./output/parameter_{var_id}_forcing.csv"
+        with open(csv_path, 'w') as f:
+            keys = ['var_id', 'phi', 'zeta']
+            vals = [var_id] + [str(para) for para in res.x]
+            f.write(','.join(keys))
+            f.write('\n')
+            f.write(','.join(vals))
+        logger.info(f"Parameter values saved at {csv_path}")
 
-    fig = plt.figure(frameon=False)
-    figname = f"./output/fig_{var_id}_forcing.svg"
-    ax = fig.add_subplot(1,1,1, facecolor='none')
-    conc_conversion_rate, _ = concentration_unit_conversion_rates[var_id]
-    for j, scenario in enumerate(scenarios):
-        x_obs = forcing_dataset[scenario][var_id]
-        ax.plot(years, x_obs, label=f'{scenario}', c=colors[j], ls='--')
-    
-        u = concentrations_dataset[scenario][var_id]*conc_conversion_rate
-        ubar = ubars[var_id]*conc_conversion_rate
-        x_vals = func(u, alpha, theta) - func(ubar, alpha, theta)
-        ax.plot(years, x_vals, label=f'{scenario} emulated', c=colors[j])
-    ax.set_xlabel("Year")
-    ax.set_ylabel(f"{var_id.upper()} forcing ({units})")
-    ax.legend()
-    fig.set_tight_layout(True)
-    fig.savefig(figname)
+        self.parameters_estimate[var_id] = parameters
+
+    def plot_result(self):
+        
+        fig, axes = plt.subplots(1, 3, figsize=(15, 5), frameon=False)
+        years = self.years
+        figname = f"./output/fig_forcing.svg"
+
+        for var_id, ax in zip(self.var_ids, axes):
+            parameters = self.parameters_estimate[var_id]
+            for j, scenario in enumerate(self.scenarios):
+
+                x_obs = self.datasets['forcing'][scenario][var_id]
+                ax.plot(years, x_obs, label=f'{scenario}', c=colors[j], ls='--')
+            
+                u = self.datasets['concentration'][scenario][var_id]
+                ubar = self.ubars[var_id]
+                x_vals = self.forcing_func(u, parameters) - self.forcing_func(ubar, parameters)
+                ax.plot(years, x_vals, label=f'{scenario} (model)', c=colors[j])
+            ax.set_xlabel("Year")
+            ax.set_ylabel(f"{var_id.upper()} forcing (W m-2)")
+            ax.set_title(f"{var_id.upper()}")
+            if ax == axes[-1]:
+                ax.legend(loc='upper left', frameon=False, facecolor=None)
+            
+        for ax in axes.ravel():
+            ax.set_facecolor('none')
+            for posi in ['top', 'right']:
+                ax.spines[posi].set_visible(False)
+        fig.tight_layout()
+        fig.savefig(figname)
+        logger.info(f"Plot saved at {figname}")
+
+def main():
+
+    model = ForcingModel()
+
+    for var_id in model.var_ids:
+        model.estimate_parameters(var_id)
+
+    model.plot_result()
+
+if __name__ == '__main__':
+    main()

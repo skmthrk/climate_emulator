@@ -134,13 +134,12 @@ class NonlinearCarbonCycleModel:
 
     def estimate_gammas(self, base_experiment):
 
-        method = self.methods[0]
-
         logger.info(f"Estimating gammas for {base_experiment}-based model")
     
         deltas = self.deltas[base_experiment]
         gammas = [0, 0] # initial value
         bounds = [(None, None) for i in range(len(gammas))]
+        method = self.methods[0]
         tol = 1e-9
         maxiter = 5000
         res = optimize.minimize(fun=lambda gammas: self.loss_function(gammas, deltas=deltas), x0=gammas, method=method, bounds=bounds, tol=tol, options={'maxiter': maxiter})
