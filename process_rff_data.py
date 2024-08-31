@@ -9,103 +9,102 @@ from scipy import interpolate
 import matplotlib.pyplot as plt
 
 from utils import make_logger, colors
+
 logger = make_logger()
 
-def build_historical_gdp_pop_data():
-    data_dir = './data_raw'
-    years_hist = []
-    gdp_values_hist = []
-    pop_values_hist = []
-    thousands = 1e+3
-    # GDPpc (2011 USD per person)
-    # Pop (thousands)
+class DataProcessor:
 
-    with open(os.path.join(data_dir, 'maddison.csv'), 'r') as f:
-        reader = csv.reader(f, delimiter=',')
-        reader.__next__()
-        for line in reader:
-            year = line[0]
-            gdppc = line[9]
-            pop = line[-1]
-            if gdppc and pop:
-                year = int(year)
-                gdppc = int(gdppc)
-                pop = int(pop)*thousands
-                years_hist.append(year)
-                gdp_values_hist.append(gdppc*pop)
-                pop_values_hist.append(pop)
-    
-    historical_gdp_pop_data = (np.array(years_hist), np.array(gdp_values_hist), np.array(pop_values_hist))
-    return historical_gdp_pop_data
+    def __init__(self):
 
-def build_rff_gdp_data(historical_gdp_pop_data):
+        self.data_dir = './data_raw'
+        self.maddison_file = 'maddison.csv'
+        self.rff_file_pattern = 'RFF/pop_income/rffsp_pop_income_run_{}.feather'
+        self.thousands = 1e+3
+        self.millions = 1e+6
+        self.historical_data = None
 
-    thousands = 1e+3
-    millions = 1e+6
+        self.output_dir = './data_processed/gdp_pop'
+        os.makedirs(self.output_dir, exist_ok=True)
 
-    years_hist, gdp_values_hist, pop_values_hist = historical_gdp_pop_data
-    gdppc_values_hist = gdp_values_hist/pop_values_hist
-    idx = np.where(years_hist == 2020)[0][0]
+    def build_historical_data(self):
+        # units expected for output
+        # gdp: 2011 USD
+        # pop: person
+        # gdppc: 2011 USD per person
 
-    # prepare output dir
-    out_dir = './data_processed/gdp_pop'
-    try:
-        os.mkdir(out_dir)
-    except FileExistsError:
-        print("Directory {} already exists".format(out_dir))
+        logger.info(f'Building historical data based on {self.maddison_file}')
 
-    data_dir = './data_raw/RFF'
+        data = {}
+        with open(os.path.join(self.data_dir, self.maddison_file), 'r') as f:
+            reader = csv.reader(f, delimiter=',')
+            reader.__next__()
+            for line in reader:
+                year = line[0]
+                gdppc = line[9] # 2011 USD per person
+                pop = line[-1] # thousands
+                if gdppc and pop:
+                    year = int(year)
+                    gdppc = int(gdppc)
+                    pop = int(pop)*self.thousands # unit conversion
+                    data.setdefault('year', []).append(year)
+                    data.setdefault('gdp', []).append(gdppc*pop)
+                    data.setdefault('pop', []).append(pop)
 
-    years = np.arange(years_hist[0], 2300+1, 1)
-    num_samples = 10000
-    samples = range(1, num_samples+1)
-    for sample in tqdm(samples):
+        for var_id in ['year', 'gdp', 'pop']:
+            data[var_id] = np.array(data[var_id])
+        data['gdppc'] = data['gdp']/data['pop']
 
+        self.historical_data = data
+
+    def process_data(self, sample):
+
+        # load historical data
+        historical_data = self.historical_data
+
+        # Load RFF data
         # GDP (millions 2011 USD)
         # Pop (thousands)
-        file_name = f"pop_income/rffsp_pop_income_run_{sample}.feather"
-        df = pd.read_feather(os.path.join(data_dir, file_name))
-        years_rff = np.array(sorted(set(df['Year']))) # 5 year step
-        gdp_values_rff = np.array([df.loc[df['Year'] == year]['GDP'].values.sum()*millions for year in years_rff])
-        pop_values_rff = np.array([df.loc[df['Year'] == year]['Pop'].values.sum()*thousands for year in years_rff])
-        gdppc_values_rff = gdp_values_rff/pop_values_rff
 
-        gdp_func = interpolate.CubicSpline(
-            np.append(years_hist[:idx], years_rff),
-            np.append(gdp_values_hist[:idx], gdp_values_rff)
-        )
+        df = pd.read_feather(os.path.join(self.data_dir, self.rff_file_pattern.format(sample)))
+        rff_data = {}
+        rff_data['year'] = np.array(sorted(set(df['Year']))) # 5 year step
+        rff_data['gdp'] = np.array([df.loc[df['Year'] == year]['GDP'].values.sum()*self.millions for year in rff_data['year']])
+        rff_data['pop'] = np.array([df.loc[df['Year'] == year]['Pop'].values.sum()*self.thousands for year in rff_data['year']])
+        rff_data['gdppc'] = rff_data['gdp'] / rff_data['pop']
 
-        pop_func = interpolate.CubicSpline(
-            np.append(years_hist[:idx], years_rff),
-            np.append(pop_values_hist[:idx], pop_values_rff)
-        )
+        # stitch historical and rff data
+        idx = np.where(historical_data['year'] == 2020)[0][0] # stitching point
+        for var_id in ['gdp', 'pop', 'gdppc']:
+            interpolate_func = interpolate.CubicSpline(
+                np.append(historical_data['year'][:idx], rff_data['year']),
+                np.append(historical_data[var_id][:idx], rff_data[var_id])
+            )
+            years = np.arange(historical_data['year'][0], 2300+1, 1)
+            values = interpolate_func(years)
+            if var_id == 'pop':
+                values = values.astype(int)
 
-        gdppc_func = interpolate.CubicSpline(
-            np.append(years_hist[:idx], years_rff),
-            np.append(gdppc_values_hist[:idx], gdppc_values_rff)
-        )
- 
-        gdp_values = gdp_func(years)
-        with open(os.path.join(out_dir, f'gdp_sample_{sample}.csv'), 'w') as f:
-            f.write(','.join(str(year) for year in years))
-            f.write('\n')
-            f.write(','.join(str(value) for value in gdp_values))
-
-        pop_values = pop_func(years).astype(int)
-        with open(os.path.join(out_dir, f'pop_sample_{sample}.csv'), 'w') as f:
-            f.write(','.join(str(year) for year in years))
-            f.write('\n')
-            f.write(','.join(str(value) for value in pop_values))
-
-        gdppc_values = gdppc_func(years).astype(int)
-        with open(os.path.join(out_dir, f'gdppc_sample_{sample}.csv'), 'w') as f:
-            f.write(','.join(str(year) for year in years))
-            f.write('\n')
-            f.write(','.join(str(value) for value in gdppc_values))
+            # save
+            file_path = os.path.join(self.output_dir, f'{var_id}_sample_{sample}.csv')
+            with open(file_path, 'w') as f:
+                writer = csv.writer(f)
+                writer.writerow(years)
+                writer.writerow(values)
 
 def main():
-    historical_gdp_pop_data = build_historical_gdp_pop_data()
-    build_rff_gdp_data(historical_gdp_pop_data)
+
+    dp = DataProcessor()
+
+    # historical data
+    dp.build_historical_data()
+
+    # Combine historical and RFF data for each sample
+    num_samples = 10000
+    logger.info(f'Processing data for {num_samples} samples')
+    samples = range(1, num_samples+1)
+    for sample in tqdm(samples):
+        dp.process_data(sample)
+    logger.info(f'Processed data saved at {dp.output_dir}')
 
 if __name__ == '__main__':
     main()
