@@ -51,7 +51,7 @@ python evaluate_emulator.py [--model_id MIROC6]
 
 ## 物質循環
 
-Joos et al. (2013)の実験結果を用いて線形炭素循環モデルのカリブレーション：
+Joos et al. (2013)の実験結果（`PI100`，`PD100`，`PI5000`）を用いて線形炭素循環モデルのカリブレーション：
 ```
 python calibrate_co2_cycle_linear.py
 ```
@@ -63,6 +63,12 @@ python calibrate_co2_cycle_linear.py
 python calibrate_co2_cycle_nonlinear.py
 ```
 ![非線形炭素循環モデルのカリブレーション](output/fig_co2_cycle.svg)
+
+メタンと亜酸化窒素については線形モデルで十分と判断：
+```
+python calibrate_gas_cycle.py
+```
+![メタン・亜酸化窒素循環モデルのカリブレーション](output/fig_gas_cycle.svg)
 
 
 
