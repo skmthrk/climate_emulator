@@ -49,6 +49,24 @@ python evaluate_emulator.py [--model_id MIROC6]
 ```
 ![エミュレータのカリブレーションと性能評価](output/fig_evaluate_emulator.svg)
 
+## 物質循環
+
+Joos et al. (2013)の実験結果を用いて線形炭素循環モデルのカリブレーション：
+```
+python calibrate_co2_cycle_linear.py
+```
+![線形炭素循環モデルのカリブレーション](output/fig_co2_cycle_linear.svg)
+
+線形モデルのパラメタをベースラインとして，
+フィードバック効果を考慮した非線形モデルに拡張：
+```
+python calibrate_co2_cycle_nonlinear.py
+```
+![非線形炭素循環モデルのカリブレーション](output/fig_co2_cycle.svg)
+
+
+
+
 ## データソース
 
 - Bauer, M. D., & Rudebusch, G. D. (2023). The rising cost of climate change: Evidence from the bond market. The Review of Economics and Statistics, 105(5), 1255–1270. https://doi.org/10.1162/rest_a_01109
