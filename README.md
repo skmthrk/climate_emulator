@@ -32,15 +32,13 @@ python plot_scenario_tas.py [--model_id MIROC6]
 ```
 ![シナリオ実験](output/fig_plot_scenario_tas.svg)
 
-## エミュレータのカリブレーション
+## 気候エミュレータ
 
 2層のボックスモデルのカリブレーション（`abrupt-4xCO2`に基づく）：
 ```
 Rscript calibrate_emulator.r [MIROC6]
 ```
 推定結果は`output`フォルダに保存される．
-
-## エミュレータの性能評価
 
 カリブレイトされたエミュレータの内的妥当性（`abrupt-4xCO2`）と
 外的妥当性（`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`）を評価：
