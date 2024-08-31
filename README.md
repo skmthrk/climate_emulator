@@ -78,6 +78,28 @@ python calibrate_forcing.py
 ```
 ![放射強制力モデルのカリブレーション](output/fig_forcing.svg)
 
+## 将来予測
+
+RFF社会経済予測を[こちら](https://zenodo.org/records/6016583)からダウンロードし，
+`pop_income`と`emissions`を`data_raw/RFF`に置く．
+
+GDPと人口について，
+過去データと将来予測を結合したcsvファイルをサンプルごとに作成．
+```
+python process_gdp_pop_data.py
+```
+
+排出量についても，
+同様に過去データと将来予測を結合したcsvファイルをサンプルごとに作成．
+```
+python process_emission_data.py
+```
+
+作成したデータをプロット．
+```
+python plot_rff_projections.py
+```
+![RFF社会経済予測](output/fig_rff_projections.svg)
 
 
 ## データソース
