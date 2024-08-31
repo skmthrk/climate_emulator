@@ -7,3 +7,4 @@ log.txt
 /data_raw/RFF/emissions/*.csv
 /data_raw/Bauer2023/*.csv
 /data_processed/gdp_pop/*.csv
+/data_processed/emissions/*.csv
