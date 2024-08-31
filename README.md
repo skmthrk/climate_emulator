@@ -70,6 +70,13 @@ python calibrate_gas_cycle.py
 ```
 ![メタン・亜酸化窒素循環モデルのカリブレーション](output/fig_gas_cycle.svg)
 
+## 放射強制力
+
+二酸化炭素，メタン，亜酸化窒素の放射強制力モデルをカリブレーション：
+```
+python calibrate_forcing.py
+```
+![放射強制力モデルのカリブレーション](output/fig_forcing.svg)
 
 
 
