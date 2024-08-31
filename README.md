@@ -56,7 +56,10 @@ python calibrate_co2_cycle_linear.py
 ![線形炭素循環モデルのカリブレーション](output/fig_co2_cycle_linear.svg)
 
 線形モデルのパラメタをベースラインとして，
-フィードバック効果を考慮した非線形モデルに拡張：
+フィードバック効果を考慮した非線形モデルに拡張する．
+SSPシナリオのデータをカリブレーションに用いるため，
+[RCMIPのデータ](https://zenodo.org/records/4589756)をダウンロードし，
+`data_raw/RCMIP`に配置しておく．
 ```
 python calibrate_co2_cycle_nonlinear.py
 ```
