@@ -91,6 +91,15 @@ class DataProcessor:
                 writer.writerow(years)
                 writer.writerow(values)
 
+            # compute GDP per capita growth rate
+            if var_id == 'gdppc':
+                growth_values = np.log(values[1:]/values[:-1])
+                file_path = os.path.join(self.output_dir, f'{var_id}_growth_sample_{sample}.csv')
+                with open(file_path, 'w') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(years[:-1])
+                    writer.writerow(growth_values)
+
 def main():
 
     dp = DataProcessor()

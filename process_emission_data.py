@@ -145,6 +145,7 @@ class DataProcessor:
 
             years_ssp, values_ssp = self.ssp_datasets['emission'][base_scenario][var_id]
     
+            # stitch ssp data and rff data
             for sample in tqdm(self.samples):
                 years_rff, values_rff = self.rff_dataset[sample][var_id]
                 idx = np.where(years_ssp == years_rff[0])[0][0]
