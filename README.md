@@ -62,7 +62,7 @@ python calibrate_co2_cycle_nonlinear.py
 ```
 ![非線形炭素循環モデルのカリブレーション](output/fig_co2_cycle.svg)
 
-メタンと亜酸化窒素については線形モデルで十分と判断：
+メタンと亜酸化窒素については線形モデルを用いる：
 ```
 python calibrate_gas_cycle.py
 ```
@@ -78,7 +78,7 @@ python calibrate_forcing.py
 
 ## 将来予測
 
-RFF社会経済予測を[こちら](https://zenodo.org/records/6016583)からダウンロードし，
+[RFF社会経済予測](https://zenodo.org/records/6016583)をダウンロードし，
 `pop_income`と`emissions`を`data_raw/RFF`に置く．
 
 GDPと人口について，
