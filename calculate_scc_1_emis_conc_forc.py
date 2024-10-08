@@ -25,7 +25,7 @@ concentration_unit_conversion_rates = {
     'n2o': (7.82187, 'MtN2O'), # ppb to MtN2O
 }
     
-rrf_unit_conversion_rate = {
+rff_unit_conversion_rates = {
     'co2': (44/12, 'GtCO2 yr-1'), # GtC to GtCO2
     'ch4': (1, 'MtCH4 yr-1'), # MtCH4 to MtCH4
     'n2o': (44/28, 'MtN2O yr-1'), # MtN2 to MtN2O
@@ -228,7 +228,7 @@ def build_rff_dataset(sample_max=10000):
         file_name = f"rffsp_{var_id}_emissions.csv"
         sample2values = {}
         year2values = {}
-        unit_conversion_rate = rrf_unit_conversion_rate[var_id][0]
+        unit_conversion_rate = rff_unit_conversion_rates[var_id][0]
         with open(os.path.join(dir_name, file_name), 'r') as f:
             '''
             sample, year, value
@@ -337,7 +337,7 @@ def build_concentration_scenarios(emissions_dataset, concentrations_dataset, rff
         return phi * (1/zeta)*(u**zeta - 1)
     
     rff_years, sample2values = rff_dataset[var_id]
-    unit = rrf_unit_conversion_rate[var_id][1]
+    unit = rff_unit_conversion_rates[var_id][1]
     var_name = var_id.upper()
     samples = sorted(list(sample2values.keys()))
     
@@ -428,7 +428,7 @@ def build_concentration_scenarios(emissions_dataset, concentrations_dataset, rff
             deltas = np.array([float(v) for v in f.readlines()[1].split(',')[1:]])
         
         rff_years, sample2values = rff_dataset[var_id]
-        unit = rrf_unit_conversion_rate[var_id][1]
+        unit = rff_unit_conversion_rates[var_id][1]
         var_name = var_id.upper()
         samples = sorted(list(sample2values.keys()))
         
