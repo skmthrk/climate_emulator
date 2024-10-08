@@ -8,3 +8,4 @@ log.txt
 /data_raw/Bauer2023/*.csv
 /data_processed/gdp_pop/*.csv
 /data_processed/emissions/*.csv
+/data_processed/interest_rate/*.csv
