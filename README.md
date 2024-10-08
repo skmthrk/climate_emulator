@@ -117,11 +117,13 @@ python calibrate_savings_rate.py
 結果を`data_processed/uc_estimates_y10.RData`として保存．
 
 ```
-python calibrate_rho_eta.py
+simulate_interest_rate.r
 ```
-
 ![利子率データ](output/fig_interest_rate.svg)
 
+```
+python calibrate_rho_eta.py
+```
 ![選好パラメタのカリブレーション](output/fig_rho_eta_g.svg)
 
 
