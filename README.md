@@ -99,6 +99,32 @@ python plot_rff_projections.py
 ```
 ![RFF社会経済予測](output/fig_rff_projections.svg)
 
+## 貯蓄率
+
+[World Bank](https://data.worldbank.org/indicator/NY.GNS.ICTR.ZS)から貯蓄率データをダウンロードし，
+`data_raw/gross_savings.csv`として保存．
+
+```
+python calibrate_savings_rate.py
+```
+![貯蓄率](output/fig_savings_rate.svg)
+
+## 選好パラメタ
+
+[Michael Bauderの個人サイト](https://www.michaeldbauer.com/)から
+[Bauer and Rudebusch (2023, REStat)](https://doi.org/10.1162/rest_a_01109)のレプリケーションコードをダウンロードし，
+利子率モデルのパラメタを推定する（`estimate_uc.R`）．
+結果を`data_processed/uc_estimates_y10.RData`として保存．
+
+```
+python calibrate_rho_eta.py
+```
+
+![利子率データ](output/fig_interest_rate.svg)
+
+![選好パラメタのカリブレーション](output/fig_rho_eta_g.svg)
+
+
 
 ## データソース
 
