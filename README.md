@@ -111,7 +111,7 @@ python calibrate_savings_rate.py
 
 ## 選好パラメタ
 
-[Michael Bauderの個人サイト](https://www.michaeldbauer.com/)から
+[Michael Bauerの個人サイト](https://www.michaeldbauer.com/)から
 [Bauer and Rudebusch (2023, REStat)](https://doi.org/10.1162/rest_a_01109)のレプリケーションコードをダウンロードし，
 利子率モデルのパラメタを推定する（`estimate_uc.R`）．
 結果を`data_processed/uc_estimates_y10.RData`として保存．
