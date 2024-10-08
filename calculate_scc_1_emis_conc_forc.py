@@ -251,12 +251,10 @@ def build_rff_dataset(sample_max=10000):
     
     return rff_dataset
 
-def build_concentration_scenarios(emissions_dataset, concentrations_dataset, rff_dataset):
+def build_concentration_scenarios(emissions_dataset, concentrations_dataset, rff_dataset, pulse_year=2020, pulse_size=0):
     """
     """
 
-    pulse_year = 2020
-    pulse_size = 0
     if pulse_size == 0:
         pulse_dir = "nopulse"
     else:
@@ -486,7 +484,8 @@ def main():
     concentrations_dataset = build_concentrations_dataset()
     forcing_dataset = build_forcing_dataset()
     rff_dataset = build_rff_dataset(sample_max=100)
-    build_concentration_scenarios(emissions_dataset, concentrations_dataset, rff_dataset)
+    for pulse_size in [0, 1]:
+        build_concentration_scenarios(emissions_dataset, concentrations_dataset, rff_dataset, pulse_size=pulse_size)
 
 if __name__ == '__main__':
     main()
