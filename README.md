@@ -76,7 +76,7 @@ python calibrate_forcing.py
 ```
 ![放射強制力モデルのカリブレーション](output/fig_forcing.svg)
 
-## 将来予測
+## RFF将来予測
 
 [RFF社会経済予測](https://zenodo.org/records/6016583)をダウンロードし，
 `pop_income`と`emissions`を`data_raw/RFF`に置く．
