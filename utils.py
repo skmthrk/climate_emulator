@@ -22,7 +22,6 @@ colors = [
 ]
 
 script_name, _ = os.path.splitext(os.path.basename(__main__.__file__))
-#script_name = ''
 
 def make_logger(name=script_name):
 

@@ -116,16 +116,33 @@ python calibrate_savings_rate.py
 利子率モデルのパラメタを推定する（`estimate_uc.R`）．
 結果を`data_processed/uc_estimates_y10.RData`として保存．
 
+利子率の将来予測：
+
 ```
 Rscript simulate_interest_rate.r
 ```
 ![利子率データ](output/fig_interest_rate.svg)
 
+
+GDP成長率の将来予測と突き合わせて選好パラメタを推定：
 ```
 python calibrate_rho_eta.py
 ```
 ![選好パラメタのカリブレーション](output/fig_rho_eta_g.svg)
 
+## 大気中濃度と強制力の将来予測
+
+RFFの排出予測と物質循環モデルとを組み合わせて
+大気中濃度と強制力の将来予測を作成する．
+
+```
+python calculate_scc_1_emis_conc_forc.py
+```
+![大気中濃度の将来予測（CO2）](output/fig_co2_samples.png)
+
+![大気中濃度の将来予測（CH4）](output/fig_ch4_samples.png)
+
+![大気中濃度の将来予測（N2O）](output/fig_n2o_samples.png)
 
 
 ## データソース
