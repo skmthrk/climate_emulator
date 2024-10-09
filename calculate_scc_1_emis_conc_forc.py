@@ -13,479 +13,357 @@ from scipy.interpolate import CubicSpline
 from utils import make_logger, colors
 logger = make_logger()
 
-emission_unit_conversion_rates = {
-    'co2': (1e-3 * 1, 'GtCO2 yr-1'), # MtCO2/yr to GtCO2/yr
-    'ch4': (1, 'MtCH4 yr-1'), # MtCH4/yr
-    'n2o': (1e-3 * 1, 'MtN2O yr-1'), # KtN2O/yr to MtN2O/yr
-}
+class ConcentrationScenarioBuilder:
+
+    def __init__(self):
+
+        self.data_dir = './data_raw'
+        self.output_base_dir = './output'
+        self.output_dirs = {}
+        self.scenarios = ['ssp119', 'ssp245', 'ssp370', 'ssp460', 'ssp585']
+        self.base_scenario = 'ssp245'
+        self.years = list(range(1750, 2501))
+        self.var_ids = ['co2', 'ch4', 'n2o']
+        self.var_types = ['emission', 'concentration']
+        self.unit_conversion_rates = {
+            'emission': {
+                'co2': (1e-3 * 1, 'GtCO2 yr-1'), # MtCO2/yr to GtCO2/yr
+                'ch4': (1, 'MtCH4 yr-1'), # MtCH4/yr
+                'n2o': (1e-3 * 1, 'MtN2O yr-1'), # KtN2O/yr to MtN2O/yr
+            },
+            'concentration': {
+                'co2': (7.82116, 'GtCO2'), # ppm to GtCO2
+                'ch4': (2.85094, 'MtCH4'), # ppb to MtCH4
+                'n2o': (7.82187, 'MtN2O'), # ppb to MtN2O
+            },
+            'rff': {
+                'co2': (44/12, 'GtCO2 yr-1'), # GtC to GtCO2
+                'ch4': (1, 'MtCH4 yr-1'), # MtCH4 to MtCH4
+                'n2o': (44/28, 'MtN2O yr-1'), # MtN2 to MtN2O
+            },
+        }
+        self.xbars = {
+            'co2': 278 * self.unit_conversion_rates['concentration']['co2'][0], # GtCO2
+            'ch4': 720 * self.unit_conversion_rates['concentration']['ch4'][0], # MtCH4
+            'n2o': 270 * self.unit_conversion_rates['concentration']['n2o'][0], # MtN2O
+        }
+
+        self.datasets = {}
+
+    def load_dataset(self, var_type):
+        '''
+        load emissions/concentration dataset (SSP scenarios, based on RCMIP data)
     
-concentration_unit_conversion_rates = {
-    'co2': (7.82116, 'GtCO2'), # ppm to GtCO2
-    'ch4': (2.85094, 'MtCH4'), # ppb to MtCH4
-    'n2o': (7.82187, 'MtN2O'), # ppb to MtN2O
-}
+        NOTE: only ssp245 emissin data useed up until 2020
+        NOTE: only ssp245 concentration data useed for the initial state value
+        '''
     
-rff_unit_conversion_rates = {
-    'co2': (44/12, 'GtCO2 yr-1'), # GtC to GtCO2
-    'ch4': (1, 'MtCH4 yr-1'), # MtCH4 to MtCH4
-    'n2o': (44/28, 'MtN2O yr-1'), # MtN2 to MtN2O
-}
+        if var_type == 'emission':
+            data_file = 'rcmip-emissions-annual-means-v5-1-0.csv'
+            unit_conversion_rates = self.unit_conversion_rates[var_type]
+            rcmip_var_name = 'Emissions'
+        elif var_type == 'concentration':
+            data_file = 'rcmip-concentrations-annual-means-v5-1-0.csv'
+            unit_conversion_rates = self.unit_conversion_rates[var_type]
+            rcmip_var_name = 'Atmospheric Concentrations'
+            
+        # load raw data
+        data_path = os.path.join(self.data_dir, f"RCMIP/{data_file}")
+        df_ssp = pd.read_csv(data_path)
+        years = self.years
+
+        # process data
+        dataset = {}
+        for scenario in self.scenarios:
+            data = {}
+            for var_id in self.var_ids:
+                data[var_id] = (
+                    years,
+                    df_ssp.loc[
+                        (df_ssp["Region"] == "World")
+                        & (df_ssp["Scenario"] == scenario)
+                        & (df_ssp["Variable"] == f"{rcmip_var_name}|{var_id.upper()}"),
+                        f"{years[0]}":f"{years[-1]}",
+                    ].interpolate(axis=1).values.squeeze()*unit_conversion_rates[var_id][0]
+                )
+            dataset[scenario] = data
+
+        self.datasets[var_type] = dataset
+
+    def plot_dataset(self, var_type):
+
+        # load dataset if not done yet
+        if var_type not in self.datasets:
+            self.load_dataset(var_type)
+        dataset = self.datasets[var_type]
+
+        # plot
+        unit_conversion_rates = self.unit_conversion_rates[var_type]
+        for var_id in self.var_ids:
+            units = unit_conversion_rates[var_id][1]
+            figname = f"./output/fig_rcmip_{var_id}_{var_type}.svg"
+            ylabel = f"{var_id.upper()} {var_type} ({units})"
+
+            fig = plt.figure(frameon=False)
+            ax = fig.add_subplot(1,1,1, facecolor='none')
+            for idx, scenario in enumerate(self.scenarios):
+                years, values = dataset[scenario][var_id]
+                ax.plot(years, values, label=scenario, c=colors[idx])
+            ax.set_xlabel("Year")
+            ax.set_ylabel(ylabel)
+            ax.legend()
+            fig.set_tight_layout(True)
+            fig.savefig(figname)
+
+    def load_rff_emission_scenario(self, sample_cutoff=None):
+        '''
+        load future emission scenario (RFF socioeconomic projections)
+        '''
     
-var_ids = ['co2', 'ch4', 'n2o']
-
-def build_emissions_dataset():
-    '''
-    build emissions dataset (SSP scenarios, based on RCMIP data)
-
-    NOTE: only use ssp245 up until 2020
-    '''
-
-    # emission
-    data_file = "rcmip-emissions-annual-means-v5-1-0.csv"
-    data_path = f"./data_raw/RCMIP/{data_file}"
-    df_ssp = pd.read_csv(data_path)
-    
-    emissions_dataset = {}
-    year0, year1 = 1750, 2500
-    years = np.arange(year0, year1+1)
-    scenarios = ['ssp119', 'ssp245', 'ssp370', 'ssp460', 'ssp585']
-    for scenario in scenarios:
-        emissions_data = {}
-        for var_id in var_ids:
-            conversion_rate, _ = emission_unit_conversion_rates[var_id]
-            emissions_data[var_id] = (
-                years,
-                df_ssp.loc[
-                    (df_ssp["Region"] == "World")
-                    & (df_ssp["Scenario"] == scenario)
-                    & (df_ssp["Variable"] == "Emissions|{}".format(var_id.upper())),
-                    f"{year0}":f"{year1}",
-                ].interpolate(axis=1).values.squeeze()*conversion_rate
-            )
-        emissions_dataset[scenario] = emissions_data
-
-    for var_id in var_ids:
-        _, units = emission_unit_conversion_rates[var_id]
-        fig = plt.figure(frameon=False)
-        figname = f"./output/fig_rcmip_{var_id}_emission.svg"
-        ax = fig.add_subplot(1,1,1, facecolor='none')
-        for j, scenario in enumerate(scenarios):
-            years, values = emissions_dataset[scenario][var_id]
-            ax.plot(years, values, label=scenario, c=colors[j])
-        ax.set_xlabel("Year")
-        ax.set_ylabel(f"{var_id.upper()} emission ({units})")
-        ax.legend()
-        fig.set_tight_layout(True)
-        fig.savefig(figname)
-
-    return emissions_dataset
-
-def build_concentrations_dataset():
-    '''
-    build concentrations dataset (SSP scenarios, based on RCMIP data)
-
-    NOTE: only use this dataset for the initial value in building concentratio paths
-    '''
-    
-    # concentration
-    data_file = "rcmip-concentrations-annual-means-v5-1-0.csv"
-    data_path = f"./data_raw/RCMIP/{data_file}"
-    df_ssp = pd.read_csv(data_path)
-    
-    concentrations_dataset = {}
-    year0, year1 = 1750, 2500
-    years = np.arange(year0, year1+1)
-    scenarios = ['ssp119', 'ssp245', 'ssp370', 'ssp460', 'ssp585']
-    for scenario in scenarios:
-        data = {}
-        for var_id in var_ids:
-            conversion_rate = concentration_unit_conversion_rates[var_id][0]
-            data[var_id] = (
-                years,
-                df_ssp.loc[
-                    (df_ssp["Region"] == "World")
-                    & (df_ssp["Scenario"] == scenario)
-                    & (df_ssp["Variable"] == "Atmospheric Concentrations|{}".format(var_id.upper())),
-                    f"{year0}":f"{year1}",
-                ].interpolate(axis=1).values.squeeze()*conversion_rate
-            )
-        concentrations_dataset[scenario] = data
-    
-    for var_id in var_ids:
-        units = concentration_unit_conversion_rates[var_id][1]
-        fig = plt.figure(frameon=False)
-        figname = f"./output/fig_rcmip_{var_id}_concentration.svg"
-        ax = fig.add_subplot(1,1,1, facecolor='none')
-        for j, scenario in enumerate(scenarios):
-            years, values = concentrations_dataset[scenario][var_id]
-            ax.plot(years, values, label=scenario, c=colors[j])
-        ax.set_xlabel("Year")
-        ax.set_ylabel(f"{var_id.upper()} concentration ({units})")
-        ax.legend()
-        fig.set_tight_layout(True)
-        fig.savefig(figname)
-
-    return concentrations_dataset
-
-def build_forcing_dataset():
-    '''
-    build forcing dataset (SSP scenarios, based on RCMIP data)
-
-    NOTE: this dataset is not necessary for building concentrations scenarios
-    '''
+        # RFF emission scenario
+        dir_path = os.path.join(self.data_dir, 'RFF/emissions')
+        dataset = {}
+        unit_conversion_rates = self.unit_conversion_rates['rff']
         
-    # forcing
-    data_file = "rcmip-radiative-forcing-annual-means-v5-1-0.csv"
-    data_path = f"./data_raw/RCMIP/{data_file}"
-    df_ssp = pd.read_csv(data_path)
-    
-    forcing_dataset = {}
-    year0, year1 = 1750, 2500
-    years = np.arange(year0, year1+1)
-    scenarios = ['ssp119', 'ssp245', 'ssp370', 'ssp460', 'ssp585']
-    for scenario in scenarios:
-        data = {}
-        for var_id in var_ids:
-            data[var_id] = (
-                years,
-                df_ssp.loc[
-                    (df_ssp["Region"] == "World")
-                    & (df_ssp["Scenario"] == scenario)
-                    & (df_ssp["Variable"] == "Effective Radiative Forcing|Anthropogenic|{}".format(var_id.upper())),
-                    f"{year0}":f"{year1}",
-                ].interpolate(axis=1).values.squeeze()
-            )
-        for var_id in ['anthropogenic', 'natural']:
-            data[var_id] = (
-                years,
-                df_ssp.loc[
-                    (df_ssp["Region"] == "World")
-                    & (df_ssp["Scenario"] == scenario)
-                    & (df_ssp["Variable"] == "Effective Radiative Forcing|{}".format(var_id.capitalize())),
-                    f"{year0}":f"{year1}",
-                ].interpolate(axis=1).values.squeeze()
-            )
-        data['total'] = (
-            years,
-            df_ssp.loc[
-                (df_ssp["Region"] == "World")
-                & (df_ssp["Scenario"] == scenario)
-                & (df_ssp["Variable"] == "Effective Radiative Forcing"),
-                f"{year0}":f"{year1}",
-            ].interpolate(axis=1).values.squeeze()
-        )
-        forcing_dataset[scenario] = data
-
-    var_ids_all = var_ids + ['anthropogenic', 'natural', 'total']
-    for var_id in var_ids_all:
-        units = 'W m-2'
-        fig = plt.figure(frameon=False)
-        figname = f"./output/fig_rcmip_{var_id}_forcing.svg"
-        ax = fig.add_subplot(1,1,1, facecolor='none')
-        for scenario in scenarios:
-            years, values = forcing_dataset[scenario][var_id]
-            ax.plot(years, values, label=scenario)
-        ax.set_xlabel("Year")
-        ax.set_ylabel(f"{var_id.upper()} effective radiative forcing ({units})")
-        ax.legend()
-        fig.set_tight_layout(True)
-        fig.savefig(figname)
-    
-    units = 'W m-2'
-    fig = plt.figure(frameon=False)
-    figname = "./output/fig_rcmip_anthropogenic_forcing_non-wmghg.svg"
-    ax = fig.add_subplot(1,1,1, facecolor='none')
-    for scenario in scenarios:
-        years = forcing_dataset[scenario]["anthropogenic"][0]
-        values = (
-            forcing_dataset[scenario]["anthropogenic"][1]
-            - forcing_dataset[scenario]["co2"][1]
-            - forcing_dataset[scenario]["ch4"][1]
-            - forcing_dataset[scenario]["n2o"][1]
-            )
-        ax.plot(years, values, label=scenario)
-    ax.set_xlabel("Year")
-    ax.set_ylabel(f"Anthropogenic non-wmghg effective radiative forcing ({units})")
-    ax.legend()
-    fig.set_tight_layout(True)
-    fig.savefig(figname)
-
-    return forcing_dataset
-
-def build_rff_dataset(sample_max=10000):
-    '''
-    build future emission dataset (RFFSP)
-
-    NOTE: set sample_max = 1000 or smaller for experiment (faster)
-    '''
-
-    # RFF emission scenario
-    dir_name = 'data_raw/RFF/emissions'
-    rff_dataset = {}
-    
-    for var_id in var_ids:
-    
-        file_name = f"rffsp_{var_id}_emissions.csv"
-        sample2values = {}
-        year2values = {}
-        unit_conversion_rate = rff_unit_conversion_rates[var_id][0]
-        with open(os.path.join(dir_name, file_name), 'r') as f:
-            '''
-            sample, year, value
-            '''
-            reader = csv.reader(f, delimiter=',')
-            for i, lst in tenumerate(reader, desc=f'loading {var_id} rffsp data'):
-                if i == 0:
-                    continue
-                sample, year, value = lst
-                sample = int(sample)
-                year = int(year)
-                value = float(value) * unit_conversion_rate
-                sample2values.setdefault(sample, []).append(value)
-                year2values.setdefault(year, []).append(value)
-                if sample >= sample_max:
-                    break
+        for var_id in self.var_ids:
         
-        years = np.array(sorted(list(year2values.keys())))
-        rff_dataset[var_id] = (years, sample2values)
-    
-    return rff_dataset
+            file_name = f"rffsp_{var_id}_emissions.csv"
+            sample2values = {} # for generating sample paths
+            years = set()
+            unit_conversion_rate = unit_conversion_rates[var_id][0]
+            with open(os.path.join(dir_path, file_name), 'r') as f:
+                '''
+                raw data format: sample, year, value
+                '''
+                reader = csv.reader(f, delimiter=',')
+                reader.__next__() # skip the first line
+                for lst in tqdm(reader, desc=f'loading {var_id} rffsp data'):
+                    sample, year, value = lst
 
-def build_concentration_scenarios(emissions_dataset, concentrations_dataset, rff_dataset, pulse_year=2020, pulse_size=0):
-    """
-    """
+                    sample = int(sample)
+                    year = int(year)
+                    value = float(value) * unit_conversion_rate
 
-    if pulse_size == 0:
-        pulse_dir = "nopulse"
-    else:
-        pulse_dir = f"pulse_{pulse_size}_{pulse_year}"
+                    if sample_cutoff and sample > sample_cutoff:
+                        continue
 
-    def pulse(t, var_id):
-        if t >= pulse_year and t < pulse_year+1:
-            return pulse_size
-        return 0
+                    sample2values.setdefault(sample, []).append(value)
+                    years.add(year)
 
-    # equilibrium concentration values
-    xbars = {
-        'co2': 278 * concentration_unit_conversion_rates['co2'][0], # GtCO2
-        'ch4': 720 * concentration_unit_conversion_rates['ch4'][0], # MtCH4
-        'n2o': 270 * concentration_unit_conversion_rates['n2o'][0], # MtN2O
-    }
-    
-    out_dir0 = 'output'
-    try:
-        os.mkdir(out_dir0)
-    except FileExistsError:
-        print("Directory {} already exists".format(out_dir0))
-    try:
-        os.mkdir(os.path.join(out_dir0, pulse_dir))
-    except FileExistsError:
-        print("Directory {} already exists".format(os.path.join(out_dir0, pulse_dir)))
+            years = np.array(sorted(list(years)))
+            dataset[var_id] = (years, sample2values)
 
-    out_dirs = {var_id: os.path.join(out_dir0, pulse_dir, var_id) for var_id in var_ids}
-    for var_id in var_ids:
-        out_dir = out_dirs[var_id]
+        self.datasets['rff'] = dataset
+
+    def make_directory(self, dir_path):
         try:
-            os.mkdir(out_dir)
+            os.mkdir(dir_path)
         except FileExistsError:
-            print("Directory {} already exists".format(out_dir))
+            print("Directory {} already exists".format(dir_path))
+        
 
-    # construct emissions/concentrations scenario
-    
-    i, var_id = 0, 'co2'
-    out_dir = out_dirs[var_id]
-    
-    joos_scenario_id = 'PI5000'
-    with open(f'./output/parameter_co2_cycle_nonlinear_{joos_scenario_id}.csv', 'r') as f:
-         gammas = np.array([float(v) for v in f.readlines()[1].split(',')[1:]])
-    
-    with open(f'./output/parameter_co2_cycle_linear_{joos_scenario_id}.csv', 'r') as f:
-         deltas = np.array([float(v) for v in f.readlines()[1].split(',')[1:]])
+    def make_output_directories(self, var_id, pulse_year, pulse_size):
+        
+        if pulse_size == 0:
+            pulse_dir_name = "nopulse"
+        else:
+            pulse_dir_name = f"pulse_{pulse_size}_{pulse_year}"
 
-    def build_carbon_cycle_matrix(deltas=deltas):
-        """ convert parameter list into carbon cycle matrix
-        """
-        [delta21, delta31, delta12, delta32, delta13, delta43, delta34] = deltas
-        D = np.zeros((4,4))
-        D[1-1,1-1] = -delta21 - delta31
-        D[2-1,1-1] = delta21
-        D[3-1,1-1] = delta31
-        D[1-1,2-1] = delta12
-        D[2-1,2-1] = -delta12 - delta32
-        D[3-1,2-1] = delta32
-        D[1-1,3-1] = delta13
-        D[3-1,3-1] = -delta13 - delta43
-        D[4-1,3-1] = delta43
-        D[3-1,4-1] = delta34
-        D[4-1,4-1] = -delta34
-        return D
-    
-    def dMdt(x, t, deltas, gammas, u):
-        M1, M2, M3, M4 = x
-        M = sum(x)
-        gamma0, gamma1 = gammas
-        D = build_carbon_cycle_matrix(deltas)/np.exp(gamma0 + gamma1*M)
-        dM1dt = D[0,0]*M1 + D[0,1]*M2 + D[0,2]*M3 + D[0,3]*M4 + u(t)
-        dM2dt = D[1,0]*M1 + D[1,1]*M2 + D[1,2]*M3 + D[1,3]*M4
-        dM3dt = D[2,0]*M1 + D[2,1]*M2 + D[2,2]*M3 + D[2,3]*M4
-        dM4dt = D[3,0]*M1 + D[3,1]*M2 + D[3,2]*M3 + D[3,3]*M4
-        return [dM1dt, dM2dt, dM3dt, dM4dt]
-    
-    def forcing(u, phi, zeta):
-        if zeta == 0:
-            return phi * np.log(u)
-        return phi * (1/zeta)*(u**zeta - 1)
-    
-    rff_years, sample2values = rff_dataset[var_id]
-    unit = rff_unit_conversion_rates[var_id][1]
-    var_name = var_id.upper()
-    samples = sorted(list(sample2values.keys()))
-    
-    scenario = 'ssp245'
-    ssp_years, ssp_emission_values = emissions_dataset[scenario][var_id]
-    _, ssp_concentration_values = concentrations_dataset[scenario][var_id]
-    #_, ssp_forcing_values = forcing_dataset[scenario][var_id]
-    
-    idx = np.where(ssp_years == rff_years[0])[0][0]
-    hist_years = ssp_years[:idx]
-    years = np.append(hist_years, rff_years)
-    
-    hist_emission_values = ssp_emission_values[:idx]
-    hist_concentration_values = ssp_concentration_values[:idx]
-    #hist_forcing_values = ssp_forcing_values[:idx]
+        output_base_dir = self.output_base_dir
+        self.make_directory(output_base_dir)
 
-    # initial concentration of carbon reserviors (deviation from equilibrium point)
-    x_init = [hist_concentration_values[0] - xbars[var_id], 0, 0, 0]
+        pulse_dir = os.path.join(output_base_dir, pulse_dir_name)
+        self.make_directory(pulse_dir)
     
-    for sample in tqdm(samples, desc=f"building {var_id} concentration"):
+        output_dir = os.path.join(pulse_dir, var_id)
+        self.make_directory(output_dir)
+        logger.info(f'Directory created and set {output_dir}')
+        self.output_dirs[var_id] = output_dir
 
-        # baseline emission (w/o pulse)
-        emission_values = np.append(hist_emission_values, sample2values[sample])
+    def build_concentration_scenarios(self, var_id, pulse_year=2020, pulse_size=0):
 
-        # add emission pulse if any
-        emission_pulse_values = np.zeros(len(years))
-        for i, year in enumerate(years):
-            if year == 2020:
-                emission_pulse_values[i] = pulse_size
-
-        with open(os.path.join(out_dir, f'{var_id}_emission_sample_{sample}.csv'), 'w') as f:
-            f.write(','.join(str(year) for year in years))
-            f.write('\n')
-            f.write(','.join(str(value) for value in emission_values+emission_pulse_values))
-
-        # generate concentration path based on emission path and the estimated carbon cycle model (dMdt)
-        u_emission_raw = CubicSpline(years, emission_values, extrapolate=True)
-        def u_emission(t): return u_emission_raw(t) + pulse(t, var_id)
-        x = odeint(dMdt, x_init, years, args=(deltas, gammas, u_emission))
-        concentration_values = x[:,0] + xbars[var_id]
+        # emission pulse function
+        def pulse(t, pulse_year=pulse_year, pulse_size=pulse_size):
+            if t >= pulse_year and t < pulse_year+1:
+                return pulse_size
+            return 0
     
-        with open(os.path.join(out_dir, f'{var_id}_concentration_sample_{sample}.csv'), 'w') as f:
-            f.write(','.join(str(year) for year in years))
-            f.write('\n')
-            f.write(','.join(str(value) for value in concentration_values))
+        self.make_output_directories(var_id, pulse_year, pulse_size)
+        out_dir = self.output_dirs[var_id]
 
-        # convert concentration into forcing based on the estimated forcing model (phi, zeta)
+        # equilibrium concentration values
+        xbar = self.xbars[var_id]
+
+        if var_id == 'co2':
+            # load parameters for carbon cycle model
+            joos_scenario_id = 'PI5000'
+            with open(f'./output/parameter_{var_id}_cycle_linear_{joos_scenario_id}.csv', 'r') as f:
+                 deltas = np.array([float(v) for v in f.readlines()[1].split(',')[1:]])
+            with open(f'./output/parameter_{var_id}_cycle_nonlinear_{joos_scenario_id}.csv', 'r') as f:
+                 gammas = np.array([float(v) for v in f.readlines()[1].split(',')[1:]])
+
+            def build_gas_cycle_matrix(deltas):
+                """ convert parameter list into carbon cycle matrix
+                """
+                [delta21, delta31, delta12, delta32, delta13, delta43, delta34] = deltas
+                D = np.zeros((4,4))
+                D[1-1,1-1] = -delta21 - delta31
+                D[2-1,1-1] = delta21
+                D[3-1,1-1] = delta31
+                D[1-1,2-1] = delta12
+                D[2-1,2-1] = -delta12 - delta32
+                D[3-1,2-1] = delta32
+                D[1-1,3-1] = delta13
+                D[3-1,3-1] = -delta13 - delta43
+                D[4-1,3-1] = delta43
+                D[3-1,4-1] = delta34
+                D[4-1,4-1] = -delta34
+                return D
+            
+            def dxdt(x, t, u, deltas=deltas, gammas=gammas):
+                x1, x2, x3, x4 = x
+                gamma0, gamma1 = gammas
+                D = build_gas_cycle_matrix(deltas)/np.exp(gamma0 + gamma1*sum(x))
+                dx1dt = D[0,0]*x1 + D[0,1]*x2 + D[0,2]*x3 + D[0,3]*x4 + u(t)
+                dx2dt = D[1,0]*x1 + D[1,1]*x2 + D[1,2]*x3 + D[1,3]*x4
+                dx3dt = D[2,0]*x1 + D[2,1]*x2 + D[2,2]*x3 + D[2,3]*x4
+                dx4dt = D[3,0]*x1 + D[3,1]*x2 + D[3,2]*x3 + D[3,3]*x4
+                return [dx1dt, dx2dt, dx3dt, dx4dt]
+        
+        else:
+            with open(f'./output/parameter_{var_id}_cycle.csv', 'r') as f:
+                deltas = np.array([float(v) for v in f.readlines()[1].split(',')[1:]])
+
+            def build_gas_cycle_matrix(deltas):
+                """ convert parameter list into gas cycle matrix Delta
+                """
+                [delta11, delta21, delta31, delta12, delta22, delta32, delta13, delta23, delta33] = deltas
+                D = np.zeros((4,4))
+                D[1-1,1-1] = delta11
+                D[2-1,1-1] = delta21
+                D[3-1,1-1] = delta31
+                D[1-1,2-1] = delta12
+                D[2-1,2-1] = delta22
+                D[3-1,2-1] = delta32
+                D[1-1,3-1] = delta13
+                D[2-1,3-1] = delta23
+                D[3-1,3-1] = delta33
+                return D
+            
+            def dxdt(x, t, u, deltas=deltas):
+                x1, x2, x3 = x
+                D = build_gas_cycle_matrix(deltas)
+                dx1dt = D[0,0]*x1 + D[0,1]*x2 + D[0,2]*x3 + u(t)
+                dx2dt = D[1,0]*x1 + D[1,1]*x2 + D[1,2]*x3
+                dx3dt = D[2,0]*x1 + D[2,1]*x2 + D[2,2]*x3
+                return [dx1dt, dx2dt, dx3dt]
+
         with open(f"./output/parameter_{var_id}_forcing.csv", 'r') as f:
             phi, zeta = np.array([float(v) for v in f.readlines()[1].split(',')[1:]])
-        forcing_values = forcing(concentration_values, phi, zeta) - forcing(xbars[var_id], phi, zeta)
-        
-        with open(os.path.join(out_dir, f'{var_id}_forcing_sample_{sample}.csv'), 'w') as f:
-            f.write(','.join(str(year) for year in years))
-            f.write('\n')
-            f.write(','.join(str(value) for value in forcing_values))
 
-    # CH4 and N2O
-    
-    def build_gas_cycle_matrix(deltas):
-        """ convert parameter list into gas cycle matrix Delta
-        """
-        [delta11, delta21, delta31, delta12, delta22, delta32, delta13, delta23, delta33] = deltas
-        D = np.zeros((4,4))
-        D[1-1,1-1] = delta11
-        D[2-1,1-1] = delta21
-        D[3-1,1-1] = delta31
-        D[1-1,2-1] = delta12
-        D[2-1,2-1] = delta22
-        D[3-1,2-1] = delta32
-        D[1-1,3-1] = delta13
-        D[2-1,3-1] = delta23
-        D[3-1,3-1] = delta33
-        return D
-    
-    def dxdt(x, t, deltas, u):
-        x1, x2, x3 = x
-        D = build_gas_cycle_matrix(deltas)
-        dx1dt = D[0,0]*x1 + D[0,1]*x2 + D[0,2]*x3 + u(t)
-        dx2dt = D[1,0]*x1 + D[1,1]*x2 + D[1,2]*x3
-        dx3dt = D[2,0]*x1 + D[2,1]*x2 + D[2,2]*x3
-        return [dx1dt, dx2dt, dx3dt]
-    
-    for j, var_id in enumerate(['ch4', 'n2o']):
-        i = j+1
-        out_dir = out_dirs[var_id]
-    
-        with open(f'./output/parameter_{var_id}_cycle.csv', 'r') as f:
-            deltas = np.array([float(v) for v in f.readlines()[1].split(',')[1:]])
+        def forcing(x, phi=phi, zeta=zeta):
+            if zeta == 0:
+                return phi * np.log(x)
+            return phi * (1/zeta)*(x**zeta - 1)
         
-        rff_years, sample2values = rff_dataset[var_id]
-        unit = rff_unit_conversion_rates[var_id][1]
+        scenario = self.base_scenario
+        ssp_years, ssp_emission_values = self.datasets['emission'][scenario][var_id]
+        _, ssp_concentration_values = self.datasets['concentration'][scenario][var_id]
+        
+        rff_years, sample2values = self.datasets['rff'][var_id]
+        unit = self.unit_conversion_rates['rff'][var_id][1]
         var_name = var_id.upper()
         samples = sorted(list(sample2values.keys()))
-        
-        scenario = 'ssp245'
-        ssp_years, ssp_emission_values = emissions_dataset[scenario][var_id]
-        _, ssp_concentration_values = concentrations_dataset[scenario][var_id]
-        #_, ssp_forcing_values = forcing_dataset[scenario][var_id]
-        
-        idx = np.where(ssp_years == rff_years[0])[0][0]
-        hist_years = ssp_years[:idx]
-        years = np.append(hist_years, rff_years)
-        
-        hist_emission_values = ssp_emission_values[:idx]
-        hist_concentration_values = ssp_concentration_values[:idx]
-        #hist_forcing_values = ssp_forcing_values[:idx]
-        
-        x_init = [hist_concentration_values[0] - xbars[var_id], 0, 0]
-        
+
+        # stitch ssp and rff data
+        stitch_idx = np.where(ssp_years == rff_years[0])[0][0]
+        years = np.append(ssp_years[:stitch_idx], rff_years)
+        historical_emission_values = ssp_emission_values[:stitch_idx]
+
+        # initial concentration of carbon reserviors (deviation from equilibrium point)
+        if var_id == 'co2':
+            x_init = [ssp_concentration_values[0] - xbar, 0, 0, 0]
+        else:
+            x_init = [ssp_concentration_values[0] - xbar, 0, 0]
+
+        figname = f"./output/fig_{var_id}_samples.svg"
+        fig, axes = plt.subplots(1, 2, figsize=(10, 5), frameon=False)
+        ax_dct = {
+            'emission': (axes[0], colors[0]),
+            'concentration': (axes[1], colors[1]),
+        }
+        axes[0].plot(ssp_years, ssp_emission_values, c='k', label=scenario)
+        axes[1].plot(ssp_years, ssp_concentration_values, c='k', label=scenario)
+    
         for sample in tqdm(samples, desc=f"building {var_id} concentration"):
-            emission_values = np.append(hist_emission_values, sample2values[sample])
-
+    
+            # baseline emission (w/o pulse)
+            emission_values = np.append(historical_emission_values, sample2values[sample])
+    
+            # add emission pulse if any
             emission_pulse_values = np.zeros(len(years))
-            for i, year in enumerate(years):
-                if year == 2020:
-                    emission_pulse_values[i] = pulse_size
-
-            with open(os.path.join(out_dir, f'{var_id}_emission_sample_{sample}.csv'), 'w') as f:
-                f.write(','.join(str(year) for year in years))
-                f.write('\n')
-                f.write(','.join(str(value) for value in emission_values+emission_pulse_values))
-
+            for idx, year in enumerate(years):
+                if year == pulse_year:
+                    emission_pulse_values[idx] = pulse_size
+    
+            # generate concentration path based on emission path and the estimated carbon cycle model (dxdt)
             u_emission_raw = CubicSpline(years, emission_values, extrapolate=True)
-            def u_emission(t): return u_emission_raw(t) + pulse(t, var_id)
-            x = odeint(dxdt, x_init, years, args=(deltas, u_emission))
-            concentration_values = x[:,0] + xbars[var_id]
-        
-            with open(os.path.join(out_dir, f'{var_id}_concentration_sample_{sample}.csv'), 'w') as f:
-                f.write(','.join(str(year) for year in years))
-                f.write('\n')
-                f.write(','.join(str(value) for value in concentration_values))
+            def u_emission(t): return u_emission_raw(t) + pulse(t)
+            x = odeint(dxdt, x_init, years, args=(u_emission,))
+            concentration_values = x[:,0] + xbar
+    
+            # convert concentration into forcing based on the estimated forcing model (phi, zeta)
+            forcing_values = forcing(concentration_values) - forcing(xbar)
 
-            with open(f"./output/parameter_{var_id}_forcing.csv", 'r') as f:
-                phi, zeta = np.array([float(v) for v in f.readlines()[1].split(',')[1:]])
-            forcing_values = forcing(concentration_values, phi, zeta) - forcing(xbars[var_id], phi, zeta)
-            
+            # save results
+            for var_type in self.var_types:
+
+                if var_type == 'emission':
+                    values = emission_values + emission_pulse_values
+                else:
+                    values = concentration_values
+
+                with open(os.path.join(out_dir, f'{var_id}_{var_type}_sample_{sample}.csv'), 'w') as f:
+                    f.write(','.join(str(year) for year in years))
+                    f.write('\n')
+                    f.write(','.join(str(value) for value in values))
+
+                if pulse_size == 0:
+                    ax, color = ax_dct[var_type]
+                    ax.plot(years, values, c=color, alpha=0.1, lw=0.5)
+
             with open(os.path.join(out_dir, f'{var_id}_forcing_sample_{sample}.csv'), 'w') as f:
                 f.write(','.join(str(year) for year in years))
                 f.write('\n')
                 f.write(','.join(str(value) for value in forcing_values))
 
+        if pulse_size == 0:
+            for var_type in self.var_types:
+                ax, _ = ax_dct[var_type]
+                ax.set_xlabel("Year")
+                unit = self.unit_conversion_rates[var_type][var_id][1]
+                ax.set_ylabel(f"{var_id.upper()} {var_type} ({unit})")
+                ax.set_facecolor('none')
+                for posi in ['top', 'right']:
+                    ax.spines[posi].set_visible(False)
+                ax.legend()
+            fig.tight_layout()
+            fig.savefig(figname)
+            logger.info(f"Plot saved at {figname}")
+
 def main():
-    emissions_dataset = build_emissions_dataset()
-    concentrations_dataset = build_concentrations_dataset()
-    forcing_dataset = build_forcing_dataset()
-    rff_dataset = build_rff_dataset(sample_max=100)
-    for pulse_size in [0, 1]:
-        build_concentration_scenarios(emissions_dataset, concentrations_dataset, rff_dataset, pulse_size=pulse_size)
+
+    builder = ConcentrationScenarioBuilder()
+
+    for var_type in builder.var_types:
+        builder.load_dataset(var_type)
+        builder.plot_dataset(var_type)
+
+    sample_cutoff = 200
+    builder.load_rff_emission_scenario(sample_cutoff=sample_cutoff)
+    for var_id in builder.var_ids:
+        for pulse_size in [0, 1]:
+            builder.build_concentration_scenarios(var_id, pulse_year=2020, pulse_size=pulse_size)
 
 if __name__ == '__main__':
     main()
