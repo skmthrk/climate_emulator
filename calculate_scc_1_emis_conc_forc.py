@@ -1,7 +1,8 @@
 import os
 import csv
+
 from tqdm.auto import tqdm
-from tqdm.contrib import tenumerate
+import multiprocessing as mp
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,8 +11,15 @@ import numpy as np
 from scipy.integrate import odeint
 from scipy.interpolate import CubicSpline
 
-from utils import make_logger, colors
-logger = make_logger()
+colors = [
+    '#348ABD', # blue
+    '#188487', # breen
+    '#E24A33', # orenge
+    '#7A68A6', # purple
+    '#A60628', # red
+    '#467821', # green
+    '#CF4457', # pink
+]
 
 class ConcentrationScenarioBuilder:
 
@@ -159,10 +167,11 @@ class ConcentrationScenarioBuilder:
         try:
             os.mkdir(dir_path)
         except FileExistsError:
-            print("Directory {} already exists".format(dir_path))
+            pass
+            #print("Directory {} already exists".format(dir_path))
         
 
-    def make_output_directories(self, var_id, pulse_year, pulse_size):
+    def make_output_directories(self, var_id, pulse_size, pulse_year=2020):
         
         if pulse_size == 0:
             pulse_dir_name = "nopulse"
@@ -177,18 +186,17 @@ class ConcentrationScenarioBuilder:
     
         output_dir = os.path.join(pulse_dir, var_id)
         self.make_directory(output_dir)
-        logger.info(f'Directory created and set {output_dir}')
         self.output_dirs[var_id] = output_dir
 
-    def build_concentration_scenarios(self, var_id, pulse_year=2020, pulse_size=0):
+    def build_concentration_scenarios(self, var_id, pulse_size, pulse_year):
 
         # emission pulse function
-        def pulse(t, pulse_year=pulse_year, pulse_size=pulse_size):
+        def pulse(t, pulse_size=pulse_size, pulse_year=pulse_year):
             if t >= pulse_year and t < pulse_year+1:
                 return pulse_size
             return 0
     
-        self.make_output_directories(var_id, pulse_year, pulse_size)
+        self.make_output_directories(var_id, pulse_size, pulse_year)
         out_dir = self.output_dirs[var_id]
 
         # equilibrium concentration values
@@ -286,7 +294,7 @@ class ConcentrationScenarioBuilder:
         else:
             x_init = [ssp_concentration_values[0] - xbar, 0, 0]
 
-        figname = f"./output/fig_{var_id}_samples.svg"
+        figname = f"./output/fig_{var_id}_samples.png"
         fig, axes = plt.subplots(1, 2, figsize=(10, 5), frameon=False)
         ax_dct = {
             'emission': (axes[0], colors[0]),
@@ -337,6 +345,7 @@ class ConcentrationScenarioBuilder:
                 f.write('\n')
                 f.write(','.join(str(value) for value in forcing_values))
 
+
         if pulse_size == 0:
             for var_type in self.var_types:
                 ax, _ = ax_dct[var_type]
@@ -348,8 +357,11 @@ class ConcentrationScenarioBuilder:
                     ax.spines[posi].set_visible(False)
                 ax.legend()
             fig.tight_layout()
-            fig.savefig(figname)
-            logger.info(f"Plot saved at {figname}")
+            fig.savefig(figname, dpi=300)
+
+def build_func(args):
+    builder, var_id, pulse_size, pulse_year = args
+    builder.build_concentration_scenarios(var_id, pulse_size, pulse_year)
 
 def main():
 
@@ -359,11 +371,25 @@ def main():
         builder.load_dataset(var_type)
         builder.plot_dataset(var_type)
 
-    sample_cutoff = 200
+    sample_cutoff = None
     builder.load_rff_emission_scenario(sample_cutoff=sample_cutoff)
+
+    # build scenarios
+    args_list = []
     for var_id in builder.var_ids:
         for pulse_size in [0, 1]:
-            builder.build_concentration_scenarios(var_id, pulse_year=2020, pulse_size=pulse_size)
+            for pulse_year in [2020]:
+                args_list.append(
+                    (builder, var_id, pulse_size, pulse_year)
+                )
+    try:
+        # parallel processing
+        with mp.Pool() as pool:
+            pool.map(build_func, args_list)
+    except:
+        print('Parallel processing failed')
+        for args in args_list:
+            build_func(args)
 
 if __name__ == '__main__':
     main()
