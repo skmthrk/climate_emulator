@@ -385,14 +385,9 @@ def main():
 
     # build scenarios
     args_list = [(builder, var_id, pulse_size, pulse_year) for var_id in builder.var_ids for pulse_size in [0, 1] for pulse_year in [2020]]
-    try:
-        # parallel processing
-        with mp.Pool() as pool:
-            pool.map(process_func, args_list)
-    except:
-        print('Parallel processing failed')
-        for args in args_list:
-            process_func(args)
+
+    with mp.Pool() as pool:
+        pool.map(process_func, args_list)
 
 if __name__ == '__main__':
     main()

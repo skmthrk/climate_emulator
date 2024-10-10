@@ -275,14 +275,10 @@ def main():
     forcing_dataset = load_forcing_dataset()
     pulse_vars = [None, 'co2', 'ch4', 'n2o']
     args_list = [(forcing_dataset, 1, 2020, pulse_var, model_id, variant_label) for pulse_var in pulse_vars for model_id in model_ids]
-    try:
-        # parallel processing
-        with mp.Pool() as pool:
-            pool.map(process_func, args_list)
-    except:
-        print('Parallel processing failed')
-        for args in args_list:
-            process_func(args)
+
+    # parallel processing
+    with mp.Pool() as pool:
+        pool.map(process_func, args_list)
 
 if __name__ == '__main__':
     main()
