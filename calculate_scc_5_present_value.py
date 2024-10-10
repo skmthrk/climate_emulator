@@ -104,9 +104,9 @@ def calculate_present_value(model_id, pulse_var, pulse_size=1, pulse_year=2020):
             f.write(','.join(str(value) for value in discount_factors[idx:]*damage_values[idx:]))
 
     unit_conversion_rate = {
-        'co2': (1e-9, 'GtCO2'),
-        'ch4': (1e-6, 'MtCH4'),
-        'n2o': (1e-6, 'MtN2O'),
+        'co2': (1e-9, 'tCO2'),
+        'ch4': (1e-6, 'tCH4'),
+        'n2o': (1e-6, 'tN2O'),
     }
     
     values = [v for v in present_values if not np.isnan(v)]
