@@ -1,3 +1,7 @@
+# 簡易気候モデルとその応用
+
+[気候変動の科学と経済学, 環境経済・政策研究 17(2) 39-54 2024年](https://doi.org/10.14927/reeps.rev1702-002)
+
 ## 実験データの処理
 
 各種実験（`piControl`，`abrupt-2xCO2`，`abrupt-4xCO2`，`1pctCO2`，`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`）のそれぞれについて，
