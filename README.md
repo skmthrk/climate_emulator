@@ -61,6 +61,8 @@ python calibrate_co2_cycle_linear.py
 
 線形モデルのパラメタをベースラインとして，
 フィードバック効果を考慮した非線形モデルに拡張する．
+非線形性の効果を識別できるだけの十分な実験データがないので，
+RCMIPで用意されたSSPシナリオのデータにフィットさせる．
 ```
 python calibrate_co2_cycle_nonlinear.py
 ```
