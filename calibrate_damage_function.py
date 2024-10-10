@@ -1,16 +1,12 @@
 import os
 import sys
 import csv
-from tqdm.auto import tqdm
 
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
 from scipy.optimize import minimize
-from scipy.integrate import odeint
-from scipy.interpolate import CubicSpline
-from scipy import interpolate
 import scipy.linalg as la
 
 import matplotlib.patheffects
