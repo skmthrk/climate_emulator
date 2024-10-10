@@ -95,7 +95,7 @@ def print_optimization_result(result):
     print(f" minimizer: {list(result.x)}")
 
 def save_parameters(rho, eta):
-    with open(os.path.join('output', 'para_rho_eta.csv'), 'w') as f:
+    with open(os.path.join('output', 'parameter_rho_eta.csv'), 'w') as f:
         f.write('parameter,value\n')
         f.write(f'rho,{rho}\n')
         f.write(f'eta,{eta}\n')

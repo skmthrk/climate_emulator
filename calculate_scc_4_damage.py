@@ -1,7 +1,5 @@
 import os
-import sys
 import csv
-from glob import glob
 
 from tqdm.auto import tqdm
 import multiprocessing as mp
