@@ -130,6 +130,17 @@ python calibrate_rho_eta.py
 ```
 ![選好パラメタのカリブレーション](output/fig_rho_eta_g.svg)
 
+## 損害関数
+
+[Barrage and Nordhaus (2024)](https://doi.org/10.1073/pnas.2312030121)のAppendixから
+気候変動の損害推定の離散データを`data_raw/Barrage2024/dice2023.csv`として保存．
+
+```
+python calibrate_damage_function.py
+```
+![損害関数](output/fig_damage_dice2023.svg)
+
+
 ## 大気中濃度と強制力の将来予測
 
 RFFの排出予測と物質循環モデルとを組み合わせて
@@ -147,6 +158,7 @@ python calculate_scc_1_emis_conc_forc.py
 
 ## データソース
 
+- Barrage, L., & Nordhaus, W. (2024). Policies, projections, and the social cost of carbon: Results from the DICE-2023 model. Proceedings of the National Academy of Sciences of the United States of America, 121(13), e2312030121. https://doi.org/10.1073/pnas.2312030121
 - Bauer, M. D., & Rudebusch, G. D. (2023). The rising cost of climate change: Evidence from the bond market. The Review of Economics and Statistics, 105(5), 1255–1270. https://doi.org/10.1162/rest_a_01109
 - Joos, F., Roth, R., Fuglestvedt, J. S., Peters, G. P., Enting, I. G., Bloh, W. von, Brovkin, V., Burke, E. J., Eby, M., Edwards, N. R., & Others. (2013). Carbon dioxide and climate impulse response functions for the computation of greenhouse gas metrics: a multi-model analysis. Atmospheric Chemistry and Physics, 13(5), 2793–2825. https://acp.copernicus.org/articles/13/2793/2013/
 - Meinshausen, M., Nicholls, Z. R. J., Lewis, J., Gidden, M. J., Vogel, E., Freund, M., Beyerle, U., Gessner, C., Nauels, A., Bauer, N., Canadell, J. G., Daniel, J. S., John, A., Krummel, P. B., Luderer, G., Meinshausen, N., Montzka, S. A., Rayner, P. J., Reimann, S., Smith, S. J., van den Berg, M., Velders, G. J. M., Vollmer, M. K., and Wang, R. H. J. (2020). The shared socio-economic pathway (SSP) greenhouse gas concentrations and their extensions to 2500, Geoscientific Model Development, 13, 3571–3605, https://doi.org/10.5194/gmd-13-3571-2020
