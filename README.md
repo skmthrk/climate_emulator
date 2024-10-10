@@ -140,7 +140,6 @@ python calibrate_damage_function.py
 ```
 ![損害関数](output/fig_damage_dice2023.svg)
 
-
 ## 大気中濃度と強制力の将来予測
 
 RFFの排出予測と物質循環モデルとを組み合わせて
@@ -155,6 +154,32 @@ python calculate_scc_1_emis_conc_forc.py
 
 ![大気中濃度の将来予測（N2O）](output/fig_n2o_samples.png)
 
+## 温室効果ガスの社会的費用の推定
+
+パルスありとパルスなしのそれぞれについて，各サンプルパスの気温を計算．
+```
+python calculate_scc_2_forc_temp.py
+```
+
+気温の差分を計算（社会的費用の推定には不要）．
+```
+python calculate_scc_3_delta_tas.py
+```
+
+各サンプルパスについて損害（当期価値）を計算．
+```
+python calculate_scc_4_damage.py
+```
+
+割り引いて現在価値を計算
+```
+python calculate_scc_5_present_value.py
+```
+```
+social cost of co2 (MIROC6): 90.85139519515872 (USD/tCO2)
+social cost of ch4 (MIROC6): 463.6005273819292 (USD/tCH4)
+social cost of n2o (MIROC6): 15724.936000175458 (USD/tN2O)
+```
 
 ## データソース
 
