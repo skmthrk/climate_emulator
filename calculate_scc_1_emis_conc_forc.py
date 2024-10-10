@@ -319,6 +319,12 @@ class ConcentrationScenarioBuilder:
             def u_emission(t): return u_emission_raw(t) + pulse(t)
             x = odeint(dxdt, x_init, years, args=(u_emission,))
             concentration_values = x[:,0] + xbar
+            if np.any(concentration_values <= 0):
+                print('Non-positive concentration values found:', concentration_values)
+                # avoid log(0) in case of non-positive concentration value
+                eps = 1e-15
+                print('==> non-positive values replaced by', eps)
+                concentration_values[concentration_values <= 0] = eps
     
             # convert concentration into forcing based on the estimated forcing model (phi, zeta)
             forcing_values = forcing(concentration_values) - forcing(xbar)
@@ -359,7 +365,10 @@ class ConcentrationScenarioBuilder:
             fig.tight_layout()
             fig.savefig(figname, dpi=300)
 
-def build_func(args):
+def process_func(args):
+    '''
+    function for multiprocessing
+    '''
     builder, var_id, pulse_size, pulse_year = args
     builder.build_concentration_scenarios(var_id, pulse_size, pulse_year)
 
@@ -375,21 +384,15 @@ def main():
     builder.load_rff_emission_scenario(sample_cutoff=sample_cutoff)
 
     # build scenarios
-    args_list = []
-    for var_id in builder.var_ids:
-        for pulse_size in [0, 1]:
-            for pulse_year in [2020]:
-                args_list.append(
-                    (builder, var_id, pulse_size, pulse_year)
-                )
+    args_list = [(builder, var_id, pulse_size, pulse_year) for var_id in builder.var_ids for pulse_size in [0, 1] for pulse_year in [2020]]
     try:
         # parallel processing
         with mp.Pool() as pool:
-            pool.map(build_func, args_list)
+            pool.map(process_func, args_list)
     except:
         print('Parallel processing failed')
         for args in args_list:
-            build_func(args)
+            process_func(args)
 
 if __name__ == '__main__':
     main()
