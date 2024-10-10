@@ -84,7 +84,7 @@ def load_forcing_dataset():
         ax.set_ylabel(f"{var_id.upper()} effective radiative forcing ({units})")
         ax.legend()
         fig.set_tight_layout(True)
-        fig.savefig(figname)
+        fig.savefig(f'./output/{figname}')
     
     units = 'W m-2'
     fig = plt.figure(frameon=False)
