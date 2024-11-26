@@ -70,7 +70,7 @@ class DataProcessor:
         rff_data['year'] = np.array(sorted(set(df['Year']))) # 5 year step
         rff_data['gdp'] = np.array([df.loc[df['Year'] == year]['GDP'].values.sum()*self.millions for year in rff_data['year']])
         rff_data['pop'] = np.array([df.loc[df['Year'] == year]['Pop'].values.sum()*self.thousands for year in rff_data['year']])
-        rff_data['gdppc'] = rff_data['gdp'] / rff_data['pop']
+        rff_data['gdppc'] = rff_data['gdp'] / rff_data['pop'] # 2011 USD per person
 
         # stitch historical and rff data
         idx = np.where(historical_data['year'] == 2020)[0][0] # stitching point
