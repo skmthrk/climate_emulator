@@ -3,7 +3,7 @@
 ## Data processing
 
 Retrieve raw CMIP data for surface air temperature (`tas`), incoming shortwave radiation (`rsdt`), outgoing shortwave radiation (`rsut`),
-outgoing longwave radiation (`rlut`), and grid cell area (`areacella`) from the Earth System Grid Federation ([https://esgf.llnl.gov/](https://esgf.llnl.gov/)).
+outgoing longwave radiation (`rlut`), and grid cell area (`areacella`) from the [Earth System Grid Federation](https://esgf.llnl.gov/).
 Download data associated with the following experiments: `piControl`, `abrupt-2xCO2`, `abrupt-4xCO2`, `1pctCO2`, `historical`, `ssp119`, `ssp245`, `ssp370`, `ssp460`, and `ssp585`.
 Save the downloaded files to the `./data_raw/CMIP6` directory.
 
