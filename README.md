@@ -2,15 +2,6 @@
 
 ## Data processing
 
-Download CMIP raw data (`tas`，`rsdt`，`rsut`，`rlut`，`areacella`) for relevant experiments (`piControl`，`abrupt-2xCO2`，`abrupt-4xCO2`，`1pctCO2`，`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`)
-from [ESGF](https://esgf.llnl.gov/) and store them at `./data_raw/CMIP6`.
-
-Aggregate temperature and radiation data and generate global-mean time series (.csv files):
-```
-python process_cmip_data.py [--model_id MIROC6]
-```
-where `model_id` is defaulted at `MIROC6`.
-
 Retrieve raw CMIP data for surface air temperature (`tas`), incoming shortwave radiation (`rsdt`), outgoing shortwave radiation (`rsut`),
 outgoing longwave radiation (`rlut`), and grid cell area (`areacella`) from the Earth System Grid Federation ([https://esgf.llnl.gov/](https://esgf.llnl.gov/)).
 Download data associated with the following experiments: `piControl`, `abrupt-2xCO2`, `abrupt-4xCO2`, `1pctCO2`, `historical`, `ssp119`, `ssp245`, `ssp370`, `ssp460`, and `ssp585`.
