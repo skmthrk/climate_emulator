@@ -8,7 +8,7 @@ MAX_EVAL <- 1e+05
 XTOL_REL <- 1e-5
 
 #' Log transform parameters
-#' 
+#'
 #' @param parameters List of parameters
 #' @return Numeric vector of log-transformed parameters
 LogTransform <- function(parameters) {
@@ -19,7 +19,7 @@ LogTransform <- function(parameters) {
 }
 
 #' Exponential transform parameters
-#' 
+#'
 #' @param p Numeric vector of parameters
 #' @return List of exp-transformed parameters
 ExpTransform <- function(p) {
@@ -36,7 +36,7 @@ ExpTransform <- function(p) {
 }
 
 #' Build A, B, and V matrices
-#' 
+#'
 #' @param gamma Numeric
 #' @param chi Numeric vector
 #' @param kappa Numeric vector
@@ -59,7 +59,7 @@ BuildABV <- function(gamma, chi, kappa, epsilon, sigma) {
 }
 
 #' Build Ad, Bd, and Vd matrices
-#' 
+#'
 #' @param A Matrix
 #' @param B Matrix
 #' @param V Matrix
@@ -78,7 +78,7 @@ BuildAdBdVd <- function(A, B, V) {
 }
 
 #' Build P0 matrix
-#' 
+#'
 #' @param Ad Matrix
 #' @param Vd Matrix
 #' @return List containing P0 matrix
@@ -90,7 +90,7 @@ BuildP0 <- function(Ad, Vd) {
 }
 
 #' Build Cd and Wd matrices
-#' 
+#'
 #' @param kappa Numeric vector
 #' @param epsilon Numeric
 #' @return List containing Cd and Wd matrices
@@ -104,7 +104,7 @@ BuildCdWd <- function(kappa, epsilon) {
 }
 
 #' Build all matrices
-#' 
+#'
 #' @param gamma Numeric
 #' @param chi Numeric vector
 #' @param kappa Numeric vector
@@ -120,7 +120,7 @@ BuildMatrices <- function(gamma, chi, kappa, epsilon, sigma) {
 }
 
 #' Perform Kalman filtering
-#' 
+#'
 #' @param Ad Matrix
 #' @param Bd Matrix
 #' @param Vd Matrix
@@ -133,18 +133,18 @@ BuildMatrices <- function(gamma, chi, kappa, epsilon, sigma) {
 KalmanFilter <- function(Ad, Bd, Vd, P0, Cd, Wd, Fbar, dataset) {
     m <- nrow(Ad)
     d <- nrow(Cd)
-    
+
     a0 <- c(Fbar, rep(0, m-1))
     a0 <- as.vector(Ad %*% a0 + Bd*Fbar)
     Tt <- array(Ad, c(m, m, 1))
     dt <- Bd*Fbar
     HHt <- array(Vd, c(m, m, 1))
-    
+
     yt <- dataset
     Zt <- array(Cd, c(d, m, 1))
     ct <- matrix(0, d, 1)
     GGt <- array(Wd, c(d, d, 1))
-    
+
     tryCatch({
         kf <- FKF::fkf(a0, P0, dt, ct, Tt, Zt, HHt, GGt, yt)
         return(kf)
@@ -154,7 +154,7 @@ KalmanFilter <- function(Ad, Bd, Vd, P0, Cd, Wd, Fbar, dataset) {
 }
 
 #' Calculate negative log-likelihood for Kalman filter
-#' 
+#'
 #' @param p Numeric vector of parameters
 #' @param dataset Matrix
 #' @return Negative log-likelihood value
@@ -168,7 +168,7 @@ KalmanNegLogLik <- function(p, dataset) {
 }
 
 #' Fit Kalman filter
-#' 
+#'
 #' @param parameters List of initial parameters
 #' @param T1 Numeric vector
 #' @param R Numeric vector
@@ -177,18 +177,18 @@ KalmanNegLogLik <- function(p, dataset) {
 FitKalman <- function(parameters, T1, R, maxeval=MAX_EVAL) {
     p <- LogTransform(parameters)
     dataset <- rbind(T1, R)
-    
+
     res <- nloptr::bobyqa(
         x0 = p,
         fn = KalmanNegLogLik,
         dataset = dataset,
         control = list(maxeval=maxeval, xtol_rel=XTOL_REL)
     )
-    
-    obj <- res$value    
+
+    obj <- res$value
     itr <- res$iter
     mle <- res$par
-    
+
     parameters <- ExpTransform(mle)
     return(list(
         obj = obj,
@@ -199,32 +199,32 @@ FitKalman <- function(parameters, T1, R, maxeval=MAX_EVAL) {
 }
 
 #' Load and process climate data
-#' 
+#'
 #' @param model Character
 #' @param experiment Character
 #' @param variant Character
 #' @return List containing processed data
 load_climate_data <- function(model, experiment, variant) {
     data_dir <- "./data_processed"
-    
+
     # Load data
     data_experiment <- read.csv(file.path(data_dir, sprintf("tas_%s_%s_%s.csv", model, experiment, variant)))
     data_piControl <- read.csv(file.path(data_dir, sprintf("tas_%s_piControl_%s.csv", model, variant)))
     rsdt <- read.csv(file.path(data_dir, sprintf("rsdt_%s_%s_%s.csv", model, experiment, variant)))$rsdt
     rsut <- read.csv(file.path(data_dir, sprintf("rsut_%s_%s_%s.csv", model, experiment, variant)))$rsut
     rlut <- read.csv(file.path(data_dir, sprintf("rlut_%s_%s_%s.csv", model, experiment, variant)))$rlut
-    
+
     # Process data
     tas <- data_experiment$tas
     tas_control_mean <- mean(data_piControl$tas)
     T1 <- tas - tas_control_mean
     R <- rsdt - rlut - rsut
-    
+
     return(list(T1 = T1, R = R))
 }
 
 #' Main execution function
-#' 
+#'
 #' @param model Character
 #' @param experiment Character
 #' @param variant Character
@@ -233,7 +233,7 @@ main <- function(model, experiment, variant) {
     tryCatch({
         # Load and process data
         data <- load_climate_data(model, experiment, variant)
-        
+
         # Initial parameters
         parameters <- list(
             gamma = 1,
@@ -243,12 +243,12 @@ main <- function(model, experiment, variant) {
             sigma = c(0.5, 0.5, 0.5),
             Fbar = 5
         )
-        
+
         # Fit Kalman filter
         result <- with(data, {
             FitKalman(parameters=parameters, T1=T1, R=R)
         })
-        
+
         parameters <- unlist(result$parameters)
 
         # Print results
@@ -256,13 +256,13 @@ main <- function(model, experiment, variant) {
         print(parameters)
         cat("\nObjective:", result$obj, "\n")
         cat("Iterations:", result$itr, "\n")
-        
+
         # Save results
         write.csv(parameters,
                   sprintf('./output/parameter_%s_%s_%s.csv', model, experiment, variant))
         write.csv(data.frame(T1=data$T1, R=data$R), 
                   sprintf("./output/df_%s_%s_%s.csv", model, experiment, variant))
-        
+
     }, error = function(e) {
         cat("Error in main execution:", e$message, "\n")
     })

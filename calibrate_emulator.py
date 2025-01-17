@@ -1,4 +1,4 @@
-import math, time
+import math, time, os
 
 import scipy
 import numpy as np
@@ -180,6 +180,23 @@ class Model(object):
         dim_x, dim_y  = 3, 2
         self.kf = KalmanFilter(dim_x, dim_y)
 
+        # placeholder for model parameters
+        self.parameters = []
+
+        # MIROC6 parameter values estimated based on CMIP6 abrupt-4x
+        self.parameters_default = [
+            1.99369386052016, # gamma
+            5.16173008064773, # chi1
+            356.372094143013, # chi2
+            1.46040898686255, # kappa1
+            1.05771442660202, # kappa2
+            0.351749086954843, # epsilon
+            0.753477129440748, # sigma1
+            1.07870003355975, # sigma2
+            0.576467962298279, # sigma3
+            9.61971990592549, # Fbar
+        ]
+
         # estimation results
         self.mle = {}
 
@@ -248,21 +265,12 @@ class Model(object):
         if seed is not None:
             np.random.seed(seed=seed)
 
-        # MIROC6 parameter values estimated based on CMIP6 abrupt-4x
-        # take these values as `true' parameter values and generate a sample
-        gamma = 1.99369386052016
-        chi1 = 5.16173008064773
-        chi2 = 356.372094143013
-        kappa1 = 1.46040898686255
-        kappa2 = 1.05771442660202
-        epsilon = 0.351749086954843
-        sigma1 = 0.753477129440748
-        sigma2 = 1.07870003355975
-        sigma3 = 0.576467962298279
-        Fbar = 9.61971990592549
+        if self.parameters:
+            parameters = self.parameters
+        else:
+            parameters = self.parameters_default
 
-        self.parameters_true = gamma, chi1, chi2, kappa1, kappa2, epsilon, sigma1, sigma2, sigma3, Fbar
-        Ad, Bd, ud, Vd, Cd, wd, Wd, x0, P0 = self.build_matrices(self.parameters_true)
+        Ad, Bd, ud, Vd, Cd, wd, Wd, x0, P0 = self.build_matrices(parameters)
 
         # draw initial state x0 from N(x0, P0)
         P0_sqrt = np.linalg.cholesky(P0)
@@ -310,7 +318,7 @@ class Model(object):
 
         return -self.kf.log_likelihood(Ad, Bd, ud, Vd, Cd, wd, Wd, verbose, checkError)
 
-    def estimate(self, verbose=True):
+    def estimate(self, initial_guess=None, verbose=True, seed=None):
 
         tol = 1e-5
         maxiter = 10000
@@ -323,12 +331,16 @@ class Model(object):
         self.num_attempts = 2
 
         # initial guess
-        parameters = self.parameters_true
-        #parameters = None # begin with random initial guess
+        if initial_guess is None:
+            initial_guess = self.parameters_default
+        parameters = initial_guess
 
         # initialize best fvalue and best_parameters
         best_fvalue = np.inf
         best_parameters = parameters
+
+        if seed is not None:
+            np.random.seed(seed=seed)
 
         results = {} # store result for each method
         for attempt in range(self.num_attempts):
@@ -419,10 +431,6 @@ class Model(object):
 
                 if success:
                     print(f"- fvalue = {fvalue}")
-                    #print(f"- at following parameters:")
-                    ##gamma, chi1, chi2, kappa1, kappa2, epsilon, sigma1, sigma2, sigma3, Fbar = parameters
-                    #for parameter, parameter_true in zip(parameters, parameters_true):
-                    #    print(f"  {parameter:.4f} ({parameter_true:.4f})")
 
                     # update the best estimate for a given method
                     if (method not in results) or (fvalue < results[method]['fvalue']):
@@ -447,7 +455,7 @@ class Model(object):
                 print()
 
         print('\n=== Summary ===\n')
-        print(f" - sample size n: {n}")
+        print(f" - sample size n: {len(self.kf.Y)}")
         print(f" - seed: {seed}")
         print()
         for method in results:
@@ -459,26 +467,71 @@ class Model(object):
             parameters = list(results[method]['parameters'])
             if method == best_method:
                 print(f"*** {method} (Best method)")
-                self.mle[seed] = parameters
+                #self.mle[seed] = parameters
             else:
                 print(f"*** {method}")
             print(f" - fvalue: {fvalue} (attempt {attempt+1})")
             print(f" - status: {status} in {elapsed_time} seconds")
             print(f" - message: {message}")
-            print(f" - estimated parameters (vs true parameter values):")
-            for parameter, parameter_true, ce in zip(parameters, self.parameters_true, confidence_intvls):
-                print(f"  {parameter:.4f} +-{ce:.4f} ({parameter_true:.4f})")
+            print(f" - estimated parameters (vs initial guess):")
+            for parameter, parameter0, ce in zip(parameters, initial_guess, confidence_intvls):
+                print(f"  {parameter:.4f} +-{ce:.4f} ({parameter0:.4f})")
 
             print()
 
 
 if __name__ == "__main__":
 
+    # m = Model()
+    # n = 250 # number of measurement
+    # seed = 0
+    # m.generate_sample(n=n, seed=seed)
+    # m.estimate()
+
+    data_dir = './data_processed'
+    var_ids = ['rlut', 'rsut', 'rsdt', 'tas']
+    experiment_ids = ['piControl', 'abrupt-4xCO2']
+
+    # load pre-processed CMIP data
+    model_id = 'MIROC6'
+    variant_label = 'r1i1p1f1'
+
+    dataset = {}
+    for experiment_id in experiment_ids:
+        experiment_data = {}
+        for var_id in var_ids:
+            file_name = f"{var_id}_{model_id}_{experiment_id}_{variant_label}.csv"
+            years, values = [], []
+            with open(os.path.join(data_dir, file_name), 'r') as f:
+                next(f) # skip the first line
+                for line in f:
+                    year, value = line.strip().split(',')
+                    years.append(int(year))
+                    values.append(float(value))
+            experiment_data[var_id] = (years, values)
+        dataset[experiment_id] = experiment_data
+
+    # construct measurement data Y
+
+    # change in surface temperature
+    tas_control_mean = np.mean(dataset['piControl']['tas'][-1])
+    tas = np.array(dataset['abrupt-4xCO2']['tas'][-1]) - tas_control_mean
+    #print(tas)
+
+    # change in net radiative forcing
+    rsdt_control_mean = np.mean(dataset['piControl']['rsdt'][-1])
+    rsut_control_mean = np.mean(dataset['piControl']['rsut'][-1])
+    rlut_control_mean = np.mean(dataset['piControl']['rlut'][-1])
+    rsdt = np.array(dataset['abrupt-4xCO2']['rsdt'][-1]) - rsdt_control_mean
+    rsut = np.array(dataset['abrupt-4xCO2']['rsut'][-1]) - rsut_control_mean
+    rlut = np.array(dataset['abrupt-4xCO2']['rlut'][-1]) - rlut_control_mean
+    rndt_control_mean = rsdt_control_mean - rsut_control_mean - rlut_control_mean
+    rndt = rsdt - rsut - rlut
+    #print(rndt)
+
+    # measurement
+    Y = [np.array([[y1],[y2]]) for y1, y2 in zip(tas, rndt)]
+
     m = Model()
-
-    n = 250 # number of measurement
-    seed = 0
-
-    m.generate_sample(n=n, seed=seed)
-    m.estimate()
-    #parameters = m.mle[seed]
+    m.kf.set_observation(Y)
+    m.estimate(seed=0)
