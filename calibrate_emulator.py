@@ -1,4 +1,4 @@
-import math, time, os
+import math, time, os, sys
 
 import scipy
 import numpy as np
@@ -143,9 +143,6 @@ class KalmanFilter(object):
 
         return val
 
-    def set_observation(self, Y):
-        self.Y = Y
-
     def log_likelihood(self, A, B, u, V, C, w, W, verbose=False, checkError=True):
 
         # reset model (clear x, y, A, v, V, C, w, W)
@@ -195,6 +192,19 @@ class Model(object):
             1.07870003355975, # sigma2
             0.576467962298279, # sigma3
             9.61971990592549, # Fbar
+        ]
+
+        self.parameter_labels = [
+            'gamma',
+            'chi1',
+            'chi2',
+            'kappa1',
+            'kappa2',
+            'epsilon',
+            'sigma1',
+            'sigma2',
+            'sigma3',
+            'Fbar',
         ]
 
         # estimation results
@@ -260,6 +270,9 @@ class Model(object):
 
         return Ad, Bd, ud, Vd, Cd, wd, Wd, x0, P0
 
+    def set_observation(self, Y):
+        self.kf.Y = Y
+
     def generate_sample(self, n, seed=None):
 
         if seed is not None:
@@ -300,7 +313,7 @@ class Model(object):
             # update previous state
             x_prev = x
 
-        self.kf.set_observation(Y)
+        self.set_observation(Y)
 
     def objfun(self, input_values, log_input=True, verbose=False, checkError=True):
         '''
@@ -323,12 +336,12 @@ class Model(object):
         tol = 1e-5
         maxiter = 10000
         #methods = ['BFGS', 'Powell', 'COBYQA', 'BOBYQA', 'SLSQP', 'Nelder-Mead']
-        #methods = ['BFGS', 'SLSQP', 'Nelder-Mead']
-        methods = ['BFGS', 'Nelder-Mead']
+        methods = ['BFGS', 'SLSQP', 'Nelder-Mead']
+        #methods = ['BFGS', 'Nelder-Mead']
         #methods = ['BFGS']
 
         self.methods = methods
-        self.num_attempts = 2
+        self.num_attempts = 1
 
         # initial guess
         if initial_guess is None:
@@ -412,14 +425,12 @@ class Model(object):
                             covariance = jacobian @ hess_inv @ jacobian.T # covariance of MLE parameters
                             std_errs = np.sqrt(np.diag(covariance))
                         else:
-                            checkError = False # otherwise numerically computing Hessian would raise an error
-                            hessian = nd.Hessian(lambda log_parameters: self.objfun(log_parameters, checkError=checkError))
+                            print('.... optimization complete, computing hess_inv for std_errors')
+                            hessian = nd.Hessian(lambda log_parameters: self.objfun(log_parameters, checkError=False))
                             hess_inv = scipy.linalg.inv(hessian(res.x))
-                            # get the standard errors of parameters from standard errors of log(parameters)
-                            jacobian = np.diag(parameters) # Jacobian of the exp(parameters) evaluated at the MLE value
-                            covariance = jacobian @ hess_inv @ jacobian.T # covariance of MLE parameters
+                            jacobian = np.diag(parameters)
+                            covariance = jacobian @ hess_inv @ jacobian.T
                             std_errs = np.sqrt(np.diag(covariance))
-
                         confidence_intvls = 1.959*std_errs # 95% interval
 
                 except Exception as e:
@@ -467,7 +478,7 @@ class Model(object):
             parameters = list(results[method]['parameters'])
             if method == best_method:
                 print(f"*** {method} (Best method)")
-                #self.mle[seed] = parameters
+                self.parameters = parameters
             else:
                 print(f"*** {method}")
             print(f" - fvalue: {fvalue} (attempt {attempt+1})")
@@ -478,6 +489,7 @@ class Model(object):
                 print(f"  {parameter:.4f} +-{ce:.4f} ({parameter0:.4f})")
 
             print()
+
 
 
 if __name__ == "__main__":
@@ -514,18 +526,18 @@ if __name__ == "__main__":
     # construct measurement data Y
 
     # change in surface temperature
+    experiment_id = 'abrupt-4xCO2'
     tas_control_mean = np.mean(dataset['piControl']['tas'][-1])
-    tas = np.array(dataset['abrupt-4xCO2']['tas'][-1]) - tas_control_mean
+    tas = np.array(dataset[experiment_id]['tas'][-1]) - tas_control_mean
     #print(tas)
 
     # change in net radiative forcing
     rsdt_control_mean = np.mean(dataset['piControl']['rsdt'][-1])
     rsut_control_mean = np.mean(dataset['piControl']['rsut'][-1])
     rlut_control_mean = np.mean(dataset['piControl']['rlut'][-1])
-    rsdt = np.array(dataset['abrupt-4xCO2']['rsdt'][-1]) - rsdt_control_mean
-    rsut = np.array(dataset['abrupt-4xCO2']['rsut'][-1]) - rsut_control_mean
-    rlut = np.array(dataset['abrupt-4xCO2']['rlut'][-1]) - rlut_control_mean
-    rndt_control_mean = rsdt_control_mean - rsut_control_mean - rlut_control_mean
+    rsdt = np.array(dataset[experiment_id]['rsdt'][-1]) - rsdt_control_mean
+    rsut = np.array(dataset[experiment_id]['rsut'][-1]) - rsut_control_mean
+    rlut = np.array(dataset[experiment_id]['rlut'][-1]) - rlut_control_mean
     rndt = rsdt - rsut - rlut
     #print(rndt)
 
@@ -533,5 +545,20 @@ if __name__ == "__main__":
     Y = [np.array([[y1],[y2]]) for y1, y2 in zip(tas, rndt)]
 
     m = Model()
-    m.kf.set_observation(Y)
-    m.estimate(seed=0)
+    m.set_observation(Y)
+    m.estimate(seed=None)
+
+    file_name = f"parameter_{model_id}_{experiment_id}_{variant_label}.csv"
+    out = ['parameter,value']
+    for label, parameter in zip(m.parameter_labels, m.parameters):
+        out.append(f"{label},{parameter}")
+    with open(os.path.join('output', file_name), 'w') as f:
+        f.write('\n'.join(out))
+
+    file_name = f"df_{model_id}_{experiment_id}_{variant_label}.csv"
+    out = [',T1,R']
+    for idx, (T1, R) in enumerate(zip(tas, rndt)):
+        t = idx + 1
+        out.append(f"{t},{T1},{R}")
+    with open(os.path.join('output', file_name), 'w') as f:
+        f.write('\n'.join(out))
