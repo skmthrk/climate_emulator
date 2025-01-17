@@ -38,11 +38,11 @@ plot_scenario_tas.py [--model_id MIROC6]
 
 ## Climate emulator
 
-Calibrate a two-layer energy balance model based on `abrupt-4xCO2` experiment:
+Calibrate a two-layer energy balance model (a la [Cummins, Stephenson, Stott (2020)](https://doi.org/10.1175/JCLI-D-19-0589.1)) based on `abrupt-4xCO2` experiment:
 ```
-Rscript calibrate_emulator.r [MIROC6]
+Rscript calibrate_emulator.py [MIROC6]
 ```
-推定結果は`output`フォルダに保存される．
+The estimated parameter values of the model will be stored in `./output` directory.
 
 カリブレイトされたエミュレータの内的妥当性（`abrupt-4xCO2`）と
 外的妥当性（`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`）を評価：
