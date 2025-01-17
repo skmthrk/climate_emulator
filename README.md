@@ -1,6 +1,6 @@
 # Climate emulator and its applications to economic analysis
 
-## Date processing
+## Data processing
 
 Download CMIP raw data (`tas`，`rsdt`，`rsut`，`rlut`，`areacella`) for relevant experiments (`piControl`，`abrupt-2xCO2`，`abrupt-4xCO2`，`1pctCO2`，`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`)
 from [ESGF](https://esgf.llnl.gov/) and store them at `./data_raw/CMIP6`.
