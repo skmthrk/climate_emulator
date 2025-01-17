@@ -86,10 +86,10 @@ def plot_da(var_id, model_id, variant_label, fig, axes, font_size):
     """
     logger.info(f"Plotting DataArray for {var_id}, {model_id}, {variant_label}")
     data_dir = "./data_raw/CMIP6"
-    
+
     da_historical = load_da(var_id, model_id, 'historical', variant_label, data_dir)
     da_base_mean = da_historical.isel(time=slice(0, 51)).mean(dim="time", skipna=True)  # 1850-1900 mean
-    
+
     experiment_ids = ['ssp585', 'ssp119']
     das_ssp = {experiment_id: [] for experiment_id in experiment_ids}
 
@@ -101,7 +101,7 @@ def plot_da(var_id, model_id, variant_label, fig, axes, font_size):
             start_year, end_year = int(da_plot['time'][0].dt.year), int(da_plot['time'][-1].dt.year)
             da_plot_mean = da_plot.mean(dim="time", skipna=True) - da_base_mean
             das_ssp[experiment_id].append((da_plot_mean, start_year, end_year))
-    
+
     cmap = plt.cm.RdBu_r
     norm = matplotlib.colors.Normalize(vmin=-8, vmax=8)
     levels = 16
@@ -112,9 +112,9 @@ def plot_da(var_id, model_id, variant_label, fig, axes, font_size):
             ax = axes[i][j]
             cbar_kwargs = dict(orientation="horizontal", aspect=30, shrink=0.60, pad=0.04, extend='both') if i == 1 else {}
             plot_contourf(da_plot_mean, fig, ax, cmap, norm=norm, levels=levels, cbar_kwargs=cbar_kwargs, fontsize=font_size)
-            ax.set_title(f"{experiment_id}（{start_year}-{end_year}年平均）", fontsize=font_size)
+            ax.set_title(f"{experiment_id} ({start_year}-{end_year} mean)", fontsize=font_size)
             ax.coastlines(color='k', linestyle='-', linewidth=0.5)
-    
+
     logger.info("DataArray plotting completed")
 
 def load_timeseries(var_id, model_id, variant_label, experiment_id, data_dir):
@@ -148,7 +148,7 @@ def load_timeseries(var_id, model_id, variant_label, experiment_id, data_dir):
 
     if experiment_id == 'historical':
         years = np.array(years) - years[0] + 1850
-    
+
     logger.info(f"Time series loaded successfully. Years range: {min(years)}-{max(years)}")
     return np.array(years), np.array(values)
 
@@ -165,15 +165,14 @@ def plot_scenario(var_id, model_id, variant_label):
         matplotlib.figure.Figure: The complete figure with all plots.
     """
     logger.info(f"Creating scenario plot for {var_id}, {model_id}, {variant_label}")
-    font_path = './font/NotoSansJP-Regular.ttf'
-    font_size = 12
-    load_japanese_font(font_path, font_size)
     matplotlib.rc('axes', lw=0.25, edgecolor='k')
+    font_size = 12
+    plt.rcParams.update({'font.size': font_size})
 
     figsize = np.array([280, 210]) / 30
     projection = ccrs.Robinson()
     path_effects = [pe.withStroke(linewidth=3, foreground="w")]
-    
+
     fig = plt.figure(frameon=False, figsize=figsize)
     gs = fig.add_gridspec(nrows=1000, ncols=1000, left=0.08, right=0.95, wspace=0.0, hspace=0.0)
     ax0 = fig.add_subplot(gs[0:1000, 0:1000], facecolor='none', frameon=True)
@@ -183,16 +182,16 @@ def plot_scenario(var_id, model_id, variant_label):
         [fig.add_subplot(gs[300+25:578, 0:400], facecolor='none', frameon=True, projection=projection),
          fig.add_subplot(gs[300+25:578, 300:700], facecolor='none', frameon=True, projection=projection)]
     ]
-    
+
     plot_da(var_id, model_id, variant_label, fig, axes, font_size)
-    
+
     data_dir = "./data_processed"
     years_hist, values_hist = load_timeseries(var_id, model_id, variant_label, 'historical', data_dir)
     normalized_values, base_value = normalize(years_hist, values_hist, (1851, 1900))
-    
+
     ax0.plot(years_hist, normalized_values, label=f"{model_id} historical", path_effects=path_effects, c='gray', lw=2)
     ax0.axhline(y=0, color='k', lw=0.9, ls=':')
-    
+
     experiment_ids = ['ssp119', 'ssp245', 'ssp370', 'ssp460', 'ssp585']
     for color, experiment_id in zip(colors, experiment_ids):
         logger.info(f"Plotting scenario: {experiment_id}")
@@ -202,9 +201,9 @@ def plot_scenario(var_id, model_id, variant_label):
         values = np.concatenate([[normalized_values[-1]], normalized_ssp_values])
         ax0.plot(years, values, label=f"{model_id} {experiment_id}", path_effects=path_effects, c=color, lw=2)
         ax0.text(years[-1]+2, values[-1], f"{experiment_id}", path_effects=path_effects, va='center', ha='left', c=color, fontsize=font_size*1.1)
-    
-    ax0.set_ylabel("1850-1900年平均と比較した地表面気温偏差の全球平均（K）")
-    ax0.set_xlabel('年')
+
+    ax0.set_ylabel("Surface temperature anomaly relative to 1850-1900 mean (K)")
+    ax0.set_xlabel('Year')
     ax0.spines['top'].set_visible(False)
     ax0.spines['right'].set_visible(False)
 
@@ -216,9 +215,9 @@ def main():
     model_id = args.model_id
     var_id = 'tas'
     variant_label = 'r1i1p1f1'
-    
+
     fig = plot_scenario(var_id, model_id, variant_label)
-    
+
     script_name, _ = os.path.splitext(os.path.basename(__file__))
     fig.savefig(f'./output/fig_{script_name}.svg')
 

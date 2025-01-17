@@ -14,7 +14,7 @@ def parse_args():
     parser.add_argument("--model_id", default="MIROC6", help="model ID")
     parser.add_argument("--var_ids", nargs='+', default=['tas', 'rsdt', 'rsut', 'rlut'], help="variable IDs")
     return parser.parse_args()
-    
+
 def build_data(input_dir, output_dir, model_id, experiment_id, var_id):
     """
     Build processed data from raw data files.
@@ -35,22 +35,22 @@ def build_data(input_dir, output_dir, model_id, experiment_id, var_id):
         variant_label = 'r1i1p1f2'
     if model_id in ["HadGEM3-GC31-LL"]:
         variant_label = 'r1i1p1f3'
-    
+
     pattern = rf'{var_id}_.*{model_id}_{experiment_id}_{variant_label}.*\.nc$'
     file_names = list_files(input_dir, pattern)
 
     output_data = []
     for file_name in file_names:
         logger.info(f"Processing {file_name}")
-    
+
         file_path = os.path.join(input_dir, file_name)
         ds = xr.open_dataset(file_path)
         variable_id = ds.variable_id
         da = ds[variable_id]
-        
+
         # for output file name
         var_id, _, model_id, experiment_id, variant_id, grid_type, duration = file_name.split('_')
-        
+
         try:
             # load areacella file
             area_file_name = f"areacella_fx_{model_id}_{experiment_id}_{variant_id}_{grid_type}.nc"
@@ -81,7 +81,7 @@ def build_data(input_dir, output_dir, model_id, experiment_id, var_id):
             month_value = np.nansum(da.sel(time=t).data * area_da.data/area_da.values.sum())
             month_weight = numdays_of_month[month]/365
             month_value *= month_weight
-        
+
             if year == current_year:
                 # keep adding month_value until year switch
                 month_values.append(month_value)
@@ -93,14 +93,14 @@ def build_data(input_dir, output_dir, model_id, experiment_id, var_id):
                     years.append(current_year)
                 month_values = [month_value]
                 current_year = year
-        
+
             # last index
             if idx_t == len(time)-1:
                 # save only if values exist for full year
                 if len(month_values) == 12:
                     annual_values.append(sum(month_values))
                     years.append(year)
-        
+
         # generate output file
         lines = [f"{year},{annual_value}" for year, annual_value in zip(years, annual_values)]
         output_data.append((years[0], lines))
@@ -131,7 +131,7 @@ def main():
         'abrupt-4xCO2',
         '1pctCO2',
     ]
-    
+
     evaluation_experiment_ids = [
         'historical',
         'ssp119',

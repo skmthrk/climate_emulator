@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-from utils import make_logger, load_japanese_font, colors
+from utils import make_logger, colors
 
 logger = make_logger()
 
@@ -15,7 +15,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_id", default="MIROC6", help="model ID")
     return parser.parse_args()
-    
+
 def load_data(model_id, var_id, variant_label, experiment_ids):
     """
     Load data from CSV files matching the specified conditions.
@@ -32,7 +32,7 @@ def load_data(model_id, var_id, variant_label, experiment_ids):
     input_dir = "./data_processed"
     data = {}
     for experiment_id in experiment_ids:
-    
+
         years = []
         values = []
 
@@ -65,10 +65,9 @@ def plot_experiments(model_id, var_id, variant_label):
     Returns:
         matplotlib.figure.Figure: Generated plot figure
     """
-    font_path = './font/NotoSansJP-Regular.ttf'
     font_size = 12
-    load_japanese_font(font_path, font_size)
-    
+    plt.rcParams.update({'font.size': font_size})
+
     # load data
     experiment_ids = ['piControl', 'abrupt-4xCO2', 'abrupt-2xCO2', '1pctCO2']
     data = load_data(model_id, var_id, variant_label, experiment_ids)
@@ -84,14 +83,14 @@ def plot_experiments(model_id, var_id, variant_label):
     ax3 = fig.add_subplot(gs[50+delta:100,0:50-delta], facecolor='none', frameon=True) # for 1pctCO2
     ax4 = fig.add_subplot(gs[50+delta:100,50+delta:100], facecolor='none', frameon=True) # all
     axes = [ax1, ax2, ax3, ax4]
-    
+
     cs = {}
     letters = ['A', 'B', 'C', 'D']
     loc = "upper left"
     count = 0
     yearminmax = np.inf
     for idx, experiment_id in enumerate(['piControl', 'abrupt', '1pctCO2']):
-    
+
         ax = axes[idx]
         if experiment_id  == 'abrupt':
             for exp_id in ['abrupt-4xCO2', 'abrupt-2xCO2']:
@@ -101,14 +100,14 @@ def plot_experiments(model_id, var_id, variant_label):
                 yearminmax = min(yearminmax, max(years))
                 ax.plot(years, vals, label=f"{exp_id}", c=c)
                 cs[exp_id] = c
-    
+
             ax.legend(loc=loc, handletextpad=0.1, ncol=2, columnspacing=1.0)
             xlim = list(ax.get_xlim())
             ylim = list(ax.get_ylim())
             dx = (xlim[1]-xlim[0])/100
             dy = (ylim[1]-ylim[0])/100
             ax.set_ylim(ylim[0], ylim[1]+5*dy)
-    
+
         else:
             c = colors[count]
             count += 1
@@ -116,14 +115,14 @@ def plot_experiments(model_id, var_id, variant_label):
             yearminmax = min(yearminmax, max(years))
             ax.plot(years, vals, label=f"{experiment_id}", c=c)
             cs[experiment_id] = c
-    
+
             ax.legend(loc=loc, handletextpad=0.1)
             xlim = list(ax.get_xlim())
             ylim = list(ax.get_ylim())
             dx = (xlim[1]-xlim[0])/100
             dy = (ylim[1]-ylim[0])/100
         ax.text(-0.01, 1.07, letters[idx], fontsize=16, ha='center', va='center', transform=ax.transAxes)
-    
+
     # put them together in a single figure
     ax = axes[-1]
     for experiment_id in ['abrupt-4xCO2', 'abrupt-2xCO2', '1pctCO2','piControl']:
@@ -137,10 +136,10 @@ def plot_experiments(model_id, var_id, variant_label):
     dy = (ylim[1]-ylim[0])/100
     ylim = list(ax.get_ylim())
     ax.text(-0.01, 1.07, letters[-1], fontsize=16, ha='center', va='center', transform=ax.transAxes)
-    
-    for ax in axes:    
-        ax.set_ylabel('地表面気温の全球年平均（K）')
-        ax.set_xlabel('年')
+
+    for ax in axes:
+        ax.set_ylabel('Near-surface temperature (K)')
+        ax.set_xlabel('Year')
         for posi in ['top', 'right']:
             # remove spines
             ax.spines[posi].set_visible(False)
@@ -155,7 +154,7 @@ def main():
     variant_label = 'r1i1p1f1'
 
     fig = plot_experiments(model_id, var_id, variant_label)
-    
+
     # Save the figure
     script_name, _ = os.path.splitext(os.path.basename(__file__))
     fig.savefig(f'./output/fig_{script_name}.svg')

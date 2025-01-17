@@ -1,44 +1,53 @@
-# 簡易気候モデルとその応用
+# Climate emulator and its applications to economic analysis
 
-[「気候変動の科学と経済学」 環境経済・政策研究 17(2) 39-54 2024年](https://doi.org/10.14927/reeps.rev1702-002)
+## Date processing
 
-## 実験データの処理
+Download CMIP raw data (`tas`，`rsdt`，`rsut`，`rlut`，`areacella`) for relevant experiments (`piControl`，`abrupt-2xCO2`，`abrupt-4xCO2`，`1pctCO2`，`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`)
+from [ESGF](https://esgf.llnl.gov/) and store them at `./data_raw/CMIP6`.
 
-各種実験（`piControl`，`abrupt-2xCO2`，`abrupt-4xCO2`，`1pctCO2`，`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`）のそれぞれについて，
-必要な変数（`tas`，`rsdt`，`rsut`，`rlut`，`areacella`）のデータ（例えばMIROC6であれば，`data_raw/CMIP6/required.txt`に挙げたもの）を[ESGF](https://esgf.llnl.gov/)からダウンロードておく．
-これを全て`data_raw/CMIP6`に置く．
-面積データ（`areacella*.nc`）は必ずしも必要でない．
-
-全球年平均の時系列データ（csvファイル）の作成：
+Aggregate temperature and radiation data and generate global-mean time series (.csv files):
 ```
 python process_cmip_data.py [--model_id MIROC6]
 ```
-引数の`model_id`はダウンロードしたデータに応じて適宜変更（デフォルトは`MIROC6`）．
+where `model_id` is defaulted at `MIROC6`.
 
-## 実験データのプロット
+Retrieve raw CMIP data for surface air temperature (`tas`), incoming shortwave radiation (`rsdt`), outgoing shortwave radiation (`rsut`),
+outgoing longwave radiation (`rlut`), and grid cell area (`areacella`) from the Earth System Grid Federation ([https://esgf.llnl.gov/](https://esgf.llnl.gov/)).
+Download data associated with the following experiments: `piControl`, `abrupt-2xCO2`, `abrupt-4xCO2`, `1pctCO2`, `historical`, `ssp119`, `ssp245`, `ssp370`, `ssp460`, and `ssp585`.
+Save the downloaded files to the `./data_raw/CMIP6` directory.
 
-コントロール実験，倍増実験，漸増実験：
+Next, process the temperature and radiation data to generate global-mean time series, outputting the results as .csv files. This can be done using the provided Python script:
 ```
-python plot_experiment_tas.py [--model_id MIROC6]
+python process_cmip_data.py [--model_id MIROC6]
 ```
-![気候モデル（MIROC6）の実験データ](output/fig_plot_experiment_tas.svg)
+The `--model_id` argument allows for specifying a particular climate model, with `MIROC6` as the default.
 
-歴史実験：
+## Plotting experiment data
 
+After preprocessing the CMIP data, visualizations can be generated to examine the results. For example:
+
+```python
+plot_experiment_tas.py [--model_id MIROC6]
 ```
-python plot_historical_tas.py [--model_id MIROC6]
-```
-![気候モデルによる歴史実験](output/fig_plot_historical_tas.svg)
 
-シナリオ実験：
-```
-python plot_scenario_tas.py [--model_id MIROC6]
-```
-![シナリオ実験](output/fig_plot_scenario_tas.svg)
+![piControl, abrupt-4xCO2, abrupt-2xCO2, 1pctCO2](output/fig_plot_experiment_tas.svg)
 
-## 気候エミュレータ
+```python
+plot_historical_tas.py [--model_id MIROC6]
+```
 
-2層のボックスモデルのカリブレーション（`abrupt-4xCO2`に基づく）：
+![historical](output/fig_plot_historical_tas.svg)
+
+```python
+plot_scenario_tas.py [--model_id MIROC6]
+```
+
+![ssp scenarios](output/fig_plot_scenario_tas.svg)
+
+
+## Climate emulator
+
+Calibrate a two-layer energy balance model based on `abrupt-4xCO2` experiment:
 ```
 Rscript calibrate_emulator.r [MIROC6]
 ```

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 import cartopy.crs as ccrs
 
-from utils import list_files, make_logger, load_japanese_font, plot_contourf
+from utils import list_files, make_logger, plot_contourf
 
 logger = make_logger()
 
@@ -18,7 +18,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_id", default="MIROC6", help="model ID")
     return parser.parse_args()
-    
+
 def normalize(years, values, base):
     """
     Normalize values relative to base period.
@@ -119,7 +119,7 @@ def load_obs_timeseries(base):
     except Exception as e:
         logger.error(f"Error loading observational time series: {str(e)}")
         raise
-    
+
     values, base_value = normalize(years, values, base)
     return years, values
 
@@ -156,7 +156,7 @@ def load_model_timeseries(model_id, variant_label, base):
     except Exception as e:
         logger.error(f"Error loading model time series from {file_path}: {str(e)}")
         raise
-    
+
     years = np.array(years) - years[0] + 1850
     values, _ = normalize(years, values, base)
     return years, values
@@ -172,16 +172,15 @@ def plot_historical(model_id, variant_label):
     Returns:
         plt.Figure: The resulting figure.
     """
-    font_path = './font/NotoSansJP-Regular.ttf'
     font_size = 12
-    load_japanese_font(font_path, font_size)
+    plt.rcParams.update({'font.size': font_size})
 
     bgc = 'none'
     path_effects = [pe.withStroke(linewidth=3, foreground="w")]
     frameon = True
     figsize = np.array([230,110])/21
     projection = ccrs.Robinson()
-    
+
     delta = 5
     fig = plt.figure(frameon=False, figsize=figsize, constrained_layout=None)
     gs = fig.add_gridspec(nrows=100, ncols=100, left=0.0, right=0.95, wspace=0.0, hspace=0.0)
@@ -197,23 +196,23 @@ def plot_historical(model_id, variant_label):
     norm = matplotlib.colors.Normalize(vmin=-1.2, vmax=1.2)
     levels = 8
     cbar_kwargs = dict(orientation="horizontal", aspect=35, shrink=0.55, pad=0.04, extend='both')
-    
+
     for model_name, da_raw, ax in models:
         da = da_raw.resample(time="YE").mean(skipna=skipna)
-        da_base = da.isel(time=slice(0,51)) # pre-industrial 1850-1900 mean 
+        da_base = da.isel(time=slice(0,51)) # pre-industrial 1850-1900 mean
         da_plot = da.isel(time=slice(51,165)) # 1900-2014 mean
-    
+
         start_year = int(da_plot['time'][0].dt.year.values)
         end_year = int(da_plot['time'][-1].dt.year.values)
         da_base_mean = da_base.mean(dim="time", skipna=skipna)
         da_plot_mean = da_plot.mean(dim="time", skipna=skipna) - da_base_mean
-    
+
         if model_name == 'HadCRUT5':
             plot_contourf(da_plot_mean, fig, ax, cmap=cmap, norm=norm, levels=levels, fontsize=font_size)
         else:
             plot_contourf(da_plot_mean, fig, ax, cmap=cmap, norm=norm, levels=levels, cbar_kwargs=cbar_kwargs, fontsize=font_size)
-        
-        title = f"{model_name}（{start_year}-{end_year}年平均）"
+
+        title = f"{model_name} ({start_year}-{end_year} mean)"
         ax.set_title(title)
         ax.coastlines(color='k', linestyle='-', linewidth=0.5)
 
@@ -227,8 +226,8 @@ def plot_historical(model_id, variant_label):
     ax.hlines(xmin=years_model[0], xmax=years_model[-1], y=0, color=c, lw=0.9, ls=':')
     ax.plot(years_obs[:idx], values_obs[:idx], label="HadCRUT5", c=c, alpha=0.8, lw=lw*0.4, path_effects=path_effects)
     ax.plot(years_model, values_model, label=f"{model_id} historical", c=c, lw=lw, path_effects=path_effects)
-    ax.set_ylabel(f"地表面気温偏差の全球平均（K）")
-    ax.set_xlabel('年')
+    ax.set_ylabel(f"Surface temperature anomaly (K)")
+    ax.set_xlabel('Year')
     ax.legend(loc='best')
     for posi in ['top', 'right']:
         ax.spines[posi].set_visible(False)

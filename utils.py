@@ -27,11 +27,11 @@ def make_logger(name=script_name):
 
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
-    
+
     formatter = logging.Formatter(
         '[%(asctime)s %(name)s] %(levelname)s:%(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
-    
+
     st_handler = logging.StreamHandler()
     fl_handler = logging.FileHandler(filename="log.txt")
     for handler in [st_handler, fl_handler]:
@@ -53,10 +53,10 @@ def load_japanese_font(font_path, font_size):
 
 def deg2rad(deg):
     """ Convert degrees to radians.
-    
+
     Args:
         deg (float or array-like): Angle in degrees.
-        
+
     Returns:
         float or array-like: Angle in radians.
     """
@@ -107,16 +107,16 @@ def area(da):
     # compute grid cell size
     dlat_vals = np.gradient(lat_vals)
     dlon_vals = np.gradient(lon_vals)
-    
+
     # number of latitude/longitude points
     lat_num = len(lat_vals)
     lon_num = len(lon_vals)
-    
+
     # compute area matrix (in square kilometer)
     A = np.empty((lat_num, lon_num), dtype=float)
     for i, dlon in enumerate(dlon_vals):
         A[:,i] = surface_area(lat_vals, dlat_vals, dlon)
-    
+
     # sanity check
     A_true = 510065621 # Earth's surface area in square kilometer
     A_sum = A.sum() # must be close to Earth's surface area
@@ -132,7 +132,7 @@ def area(da):
     array = xr.DataArray(A, dims=dims, coords=coords, attrs=attrs)
 
     return array
-    
+
 def list_files(dir_path, pattern):
     """
     List files in a directory that match a given pattern.
