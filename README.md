@@ -41,7 +41,7 @@ The generated figures will be stored in `./output` directory.
 
 Calibrate a two-layer energy balance model (a la [Cummins, Stephenson, Stott 2020](https://doi.org/10.1175/JCLI-D-19-0589.1)) based on `abrupt-4xCO2` experiment:
 ```
-Rscript calibrate_emulator.py [MIROC6]
+python calibrate_emulator.py [MIROC6]
 ```
 The estimated parameter values of the model will be stored in `./output` directory.
 
