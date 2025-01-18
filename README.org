@@ -373,7 +373,29 @@ python calibrate_forcing.py
 ** Socio-economic projections
 
 Obtain the [[https://zenodo.org/records/6016583][RFF socio-economic projections]]
-extract the ~pop_income~ and ~emissions~ datasets to the ~./data_raw/RFF~ directory.
+and extract the ~pop_income~ and ~emissions~ datasets to the ~./data_raw/RFF~ directory.
+
+#+begin_src shell :results output :exports both
+ls ./data_raw/RFF/emissions/*.csv
+#+end_src
+
+#+RESULTS:
+: ./data_raw/RFF/emissions/rffsp_ch4_emissions.csv
+: ./data_raw/RFF/emissions/rffsp_co2_emissions.csv
+: ./data_raw/RFF/emissions/rffsp_n2o_emissions.csv
+
+#+begin_src shell :results output :exports both
+ls ./data_raw/RFF/pop_income/*.feather
+#+end_src
+
+#+RESULTS:
+#+begin_example
+./data_raw/RFF/pop_income/rffsp_pop_income_run_1.feather
+./data_raw/RFF/pop_income/rffsp_pop_income_run_2.feather
+./data_raw/RFF/pop_income/rffsp_pop_income_run_3.feather
+...
+./data_raw/RFF/pop_income/rffsp_pop_income_run_10000.feather
+#+end_example
 
 Then integrate historical data with the RFF projections and produce a csv file for each of the 10,000 simulated samples.
 #+begin_src shell :results output :exports both
@@ -388,6 +410,19 @@ The following script allows us to visually inspect the generated files:
 python plot_rff_projections.py
 #+end_src
 [[output/fig_rff_projections.svg]]
+
+** Economic parameters
+
+*** Savings rate
+
+
+*** Preference parameters
+
+
+*** Damage function
+
+** Social cost of CO2, CH4, and N2O
+
 
 
 ** References
