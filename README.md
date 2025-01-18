@@ -1,13 +1,19 @@
 
+# Table of Contents
+
+1.  [Climate emulator and its applications to economic analysis](#orgc2c68f9)
+    1.  [Data processing](#org9a43ddf)
+    2.  [Plotting experimental data](#org16e9bde)
+    3.  [Climate emulator](#orgd5e9a24)
+    4.  [References](#org35ac53e)
+
+
+<a id="orgc2c68f9"></a>
+
 # Climate emulator and its applications to economic analysis
 
-1.  [Data processing](#org89e0a9d)
-2.  [Plotting experimental data](#org8a2bb4e)
-3.  [Climate emulator](#org98b387c)
-4.  [References](#org2f7887e)
 
-
-<a id="org89e0a9d"></a>
+<a id="org9a43ddf"></a>
 
 ## Data processing
 
@@ -23,7 +29,7 @@ Next, process the temperature and radiation data to generate global-mean time se
 The `--model_id` argument allows for specifying a particular climate model, with `MIROC6` as the default.
 
 
-<a id="org8a2bb4e"></a>
+<a id="org16e9bde"></a>
 
 ## Plotting experimental data
 
@@ -44,15 +50,46 @@ After preprocessing the CMIP data, visualizations can be generated to examine th
 The generated figures will be stored in `./output` directory.
 
 
-<a id="org98b387c"></a>
+<a id="orgd5e9a24"></a>
 
 ## Climate emulator
 
-Calibrate a two-layer energy balance model a la [Cummins, Stephenson, Stott (2020)](https://doi.org/10.1175/JCLI-D-19-0589.1) based on `abrupt-4xCO2` experiment:
+The model is a two-layer energy balance model a la [Cummins, Stephenson, Stott (2020)](https://doi.org/10.1175/JCLI-D-19-0589.1).
+We calibrate the model based on the `abrupt-4xCO2` experiment:
 
     python calibrate_emulator.py [MIROC6]
 
+    Nelder-Mead (Best method)
+     - fvalue: 5.81538625461283 (attempt 1)
+     - status: Success in 20.535226821899414 seconds
+     - message: Optimization terminated successfully.
+     - estimated parameters (vs initial guess):
+      1.8550 +-0.4758 (1.9937)
+      4.5689 +-0.8068 (5.1617)
+      354.4272 +-62.7558 (356.3721)
+      1.5986 +-0.1792 (1.4604)
+      1.0627 +-0.0882 (1.0577)
+      0.4566 +-0.1749 (0.3517)
+      0.7309 +-0.0923 (0.7535)
+      0.9718 +-0.1588 (1.0787)
+      0.0000 +-1.7548 (0.5765)
+      10.4459 +-0.8570 (9.6197)
+
 The estimated parameter values of the model will be stored in `./output` directory.
+
+    cat ./output/parameter_MIROC6_abrupt-4xCO2_r1i1p1f1.csv
+
+    parameter,value
+    gamma,1.854986624583049
+    chi1,4.5689113459737865
+    chi2,354.4271598484283
+    kappa1,1.5986036054916877
+    kappa2,1.0626953280905416
+    epsilon,0.45658815881797343
+    sigma1,0.7309323634764261
+    sigma2,0.9717890994755948
+    sigma3,5.887261283027005e-06
+    Fbar,10.445851486241933
 
 Evaluate the internal validity (against `abrupt-4xCO2`)
 and the external validity (against `historical`, `ssp119`, `ssp245`, `ssp370`, `ssp460`, `ssp585`)
@@ -63,7 +100,7 @@ of the calibrated model:
 ![img](./output/fig_evaluate_emulator.svg)
 
 
-<a id="org2f7887e"></a>
+<a id="org35ac53e"></a>
 
 ## References
 
