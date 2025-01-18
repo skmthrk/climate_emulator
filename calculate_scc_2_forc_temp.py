@@ -28,12 +28,12 @@ var_ids = ['co2', 'ch4', 'n2o']
 def load_forcing_dataset():
     """
     """
-        
+
     # forcing
     data_file = "rcmip-radiative-forcing-annual-means-v5-1-0.csv"
     data_path = f"./data_raw/RCMIP/{data_file}"
     df_ssp = pd.read_csv(data_path)
-    
+
     forcing_dataset = {}
     year0, year1 = 1750, 2500
     years = np.arange(year0, year1+1)
@@ -85,7 +85,7 @@ def load_forcing_dataset():
         ax.legend()
         fig.set_tight_layout(True)
         fig.savefig(f'./output/{figname}')
-    
+
     units = 'W m-2'
     fig = plt.figure(frameon=False)
     figname = "fig_anthropogenic_forcing_non-wmghg.svg"
@@ -235,7 +235,7 @@ def build_temperature_scenarios(forcing_dataset, pulse_size=0, pulse_year=2020, 
         t_list = np.arange(years[0], years[-1]+1, 1)
         x_init = [u_forcing(t_list[0]), 0, 0]
         x = odeint(dxdt, x_init, t_list, args=(u_forcing, parameters))
-    
+
         with open(os.path.join(out_dir, f'total_forcing_sample_{sample}.csv'), 'w') as f:
             f.write(','.join(str(year) for year in years))
             f.write('\n')

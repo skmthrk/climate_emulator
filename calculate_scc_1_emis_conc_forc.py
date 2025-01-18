@@ -61,11 +61,11 @@ class ConcentrationScenarioBuilder:
     def load_dataset(self, var_type):
         '''
         load emissions/concentration dataset (SSP scenarios, based on RCMIP data)
-    
+
         NOTE: only ssp245 emissin data useed up until 2020
         NOTE: only ssp245 concentration data useed for the initial state value
         '''
-    
+
         if var_type == 'emission':
             data_file = 'rcmip-emissions-annual-means-v5-1-0.csv'
             unit_conversion_rates = self.unit_conversion_rates[var_type]
@@ -74,7 +74,7 @@ class ConcentrationScenarioBuilder:
             data_file = 'rcmip-concentrations-annual-means-v5-1-0.csv'
             unit_conversion_rates = self.unit_conversion_rates[var_type]
             rcmip_var_name = 'Atmospheric Concentrations'
-            
+
         # load raw data
         data_path = os.path.join(self.data_dir, f"RCMIP/{data_file}")
         df_ssp = pd.read_csv(data_path)
@@ -127,14 +127,14 @@ class ConcentrationScenarioBuilder:
         '''
         load future emission scenario (RFF socioeconomic projections)
         '''
-    
+
         # RFF emission scenario
         dir_path = os.path.join(self.data_dir, 'RFF/emissions')
         dataset = {}
         unit_conversion_rates = self.unit_conversion_rates['rff']
-        
+
         for var_id in self.var_ids:
-        
+
             file_name = f"rffsp_{var_id}_emissions.csv"
             sample2values = {} # for generating sample paths
             years = set()
@@ -169,10 +169,10 @@ class ConcentrationScenarioBuilder:
         except FileExistsError:
             pass
             #print("Directory {} already exists".format(dir_path))
-        
+
 
     def make_output_directories(self, var_id, pulse_size, pulse_year=2020):
-        
+
         if pulse_size == 0:
             pulse_dir_name = "nopulse"
         else:
@@ -183,7 +183,7 @@ class ConcentrationScenarioBuilder:
 
         pulse_dir = os.path.join(output_base_dir, pulse_dir_name)
         self.make_directory(pulse_dir)
-    
+
         output_dir = os.path.join(pulse_dir, var_id)
         self.make_directory(output_dir)
         self.output_dirs[var_id] = output_dir
@@ -195,7 +195,7 @@ class ConcentrationScenarioBuilder:
             if t >= pulse_year and t < pulse_year+1:
                 return pulse_size
             return 0
-    
+
         self.make_output_directories(var_id, pulse_size, pulse_year)
         out_dir = self.output_dirs[var_id]
 
@@ -227,7 +227,7 @@ class ConcentrationScenarioBuilder:
                 D[3-1,4-1] = delta34
                 D[4-1,4-1] = -delta34
                 return D
-            
+
             def dxdt(x, t, u, deltas=deltas, gammas=gammas):
                 x1, x2, x3, x4 = x
                 gamma0, gamma1 = gammas
@@ -237,7 +237,7 @@ class ConcentrationScenarioBuilder:
                 dx3dt = D[2,0]*x1 + D[2,1]*x2 + D[2,2]*x3 + D[2,3]*x4
                 dx4dt = D[3,0]*x1 + D[3,1]*x2 + D[3,2]*x3 + D[3,3]*x4
                 return [dx1dt, dx2dt, dx3dt, dx4dt]
-        
+
         else:
             with open(f'./output/parameter_{var_id}_cycle.csv', 'r') as f:
                 deltas = np.array([float(v) for v in f.readlines()[1].split(',')[1:]])
@@ -257,7 +257,7 @@ class ConcentrationScenarioBuilder:
                 D[2-1,3-1] = delta23
                 D[3-1,3-1] = delta33
                 return D
-            
+
             def dxdt(x, t, u, deltas=deltas):
                 x1, x2, x3 = x
                 D = build_gas_cycle_matrix(deltas)
@@ -273,11 +273,11 @@ class ConcentrationScenarioBuilder:
             if zeta == 0:
                 return phi * np.log(x)
             return phi * (1/zeta)*(x**zeta - 1)
-        
+
         scenario = self.base_scenario
         ssp_years, ssp_emission_values = self.datasets['emission'][scenario][var_id]
         _, ssp_concentration_values = self.datasets['concentration'][scenario][var_id]
-        
+
         rff_years, sample2values = self.datasets['rff'][var_id]
         unit = self.unit_conversion_rates['rff'][var_id][1]
         var_name = var_id.upper()
@@ -302,18 +302,18 @@ class ConcentrationScenarioBuilder:
         }
         axes[0].plot(ssp_years, ssp_emission_values, c='k', label=scenario)
         axes[1].plot(ssp_years, ssp_concentration_values, c='k', label=scenario)
-    
+
         for sample in tqdm(samples, desc=f"building {var_id} concentration"):
-    
+
             # baseline emission (w/o pulse)
             emission_values = np.append(historical_emission_values, sample2values[sample])
-    
+
             # add emission pulse if any
             emission_pulse_values = np.zeros(len(years))
             for idx, year in enumerate(years):
                 if year == pulse_year:
                     emission_pulse_values[idx] = pulse_size
-    
+
             # generate concentration path based on emission path and the estimated carbon cycle model (dxdt)
             u_emission_raw = CubicSpline(years, emission_values, extrapolate=True)
             def u_emission(t): return u_emission_raw(t) + pulse(t)
@@ -325,7 +325,7 @@ class ConcentrationScenarioBuilder:
                 eps = 1e-15
                 print('==> non-positive values replaced by', eps)
                 concentration_values[concentration_values <= 0] = eps
-    
+
             # convert concentration into forcing based on the estimated forcing model (phi, zeta)
             forcing_values = forcing(concentration_values) - forcing(xbar)
 

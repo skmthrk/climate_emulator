@@ -457,7 +457,7 @@ python calibrate_damage_function.py
 
 I estimate the social cost of CO2, CH4, and N2O in several steps.
 
-*** STEP 1
+*** STEP 1: emission projections to concentration projections
 
 Create future projections of atmospheric concentrations and radiative forcing by combining
 RFF emission projections with gas cycle models:
@@ -469,6 +469,44 @@ python calculate_scc_1_emis_conc_forc.py
 [[./output/fig_ch4_samples.png]]
 [[./output/fig_n2o_samples.png]]
 
+This step is independent of the climate emulator selected.
+
+10,000 concentration trajectories are simulated for each gas, both with and without a unit emission pulse (1 GtCO2, 1 MtCH4, or 1 MtN2O) introduced in 2020.
+In rare cases, simulated gas concentrations reach negative values; these instances are replaced with a near-zero value.
+
+*** STEP 2: concentration projections to temperature projections
+
+Then, using the emulator calibrated based on the CMIP climate models,
+10,000 temperature trajectories are simulated, both with and without a unit emission pulse (1 GtCO2, 1 MtCH4, or 1 MtN2O).
+
+Next, using an emulator calibrated against CMIP climate models,
+10,000 temperature pathways are simulated, both with and without a unit emission pulse of either 1 GtCO2, 1 MtCH4, or 1 MtN2O.
+
+#+begin_src shell :results output :exports both
+python calculate_scc_2_forc_temp.py
+#+end_src
+
+
+*** STEP 3: concentration projections to temperature projections
+
+#+begin_src shell :results output :exports both
+python calculate_scc_3_delta_tas.py
+#+end_src
+
+#+begin_src shell :results output :exports both
+python calculate_scc_4_damage.py
+#+end_src
+
+#+begin_src shell :results output :exports both
+python calculate_scc_5_present_value.py
+#+end_src
+
+#+RESULTS:
+#+begin_example
+social cost of co2 (MIROC6): 75.08007257153537 (USD/tCO2)
+social cost of ch4 (MIROC6): 377.2429176555695 (USD/tCH4)
+social cost of n2o (MIROC6): 12971.253584056005 (USD/tN2O)
+#+end_example
 
 
 ** References
