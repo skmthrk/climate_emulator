@@ -53,7 +53,7 @@ def plot_interest_rate(years, df, years_hist, values_hist, path_effects):
     ax.fill_between(years[:idx], df.quantile(0.35).values[:idx], df.quantile(0.65).values[:idx], color='gray', alpha=0.4, edgecolor='none', label='35-65%')
     ax.plot(years[:idx], df.quantile(0.5).values[:idx], color='k', label='median', path_effects=path_effects)
     ax.plot(years_hist, values_hist, color='k', path_effects=path_effects)
-    
+
     ax.set_xlabel("Year")
     ax.set_ylabel("Real Interest Rate")
     ax.legend()
@@ -102,11 +102,11 @@ def save_parameters(rho, eta):
 
 def plot_comparison(years, df_interest_rate, df_growth_rate, rho, eta, path_effects):
     fig, ax = plt.subplots()
-    
+
     df_discount_rate = rho + eta * df_growth_rate
     plot_quantiles(ax, years, df_discount_rate, 'gray', 'rho+eta*g', path_effects)
     plot_quantiles(ax, years, df_interest_rate, 'blue', 'r', path_effects)
-    
+
     ax.set_xlabel("Year")
     ax.set_ylabel("rho + eta*g / Interest Rate")
     ax.set_title(f"rho = {rho:.4f}, eta = {eta:.4f}")
@@ -122,30 +122,30 @@ def plot_quantiles(ax, x, df, color, label, path_effects):
 
 def main():
     path_effects = setup_matplotlib()
-    
+
     logger.info('Load historical interest rate data')
     file_path = os.path.join('data_raw', 'Bauer2023/interest_rate_historical.csv')
     years_hist, values_hist = load_historical_data(file_path)
-    
+
     logger.info('Load simulatted future interest rate data')
     file_path = os.path.join('data_processed', 'interest_rate/interest_rate_y10_2019.csv')
     years, df_future = load_future_data(file_path, 2019, 400)
     df_interest_rate = df_future.loc[:, "V1":"V280"]
-    
+
     logger.info('Plot interest rate')
     plot_interest_rate(years, df_future, years_hist, values_hist, path_effects)
-    
+
     # Load GDP growth rate data
     file_path_template = os.path.join('data_processed', 'gdp_pop/gdppc_growth_sample_{sample}.csv')
     df_growth = load_gdp_growth_data(file_path_template, num_samples=10000)
     df_growth_rate = df_growth.loc[:, "2020":"2299"]
-    
+
     logger.info('Optimize parameters, rho and eta')
     rho, eta = optimize_parameters(df_interest_rate, df_growth_rate)
-    
+
     logger.info('Save parameter values')
     save_parameters(rho, eta)
-    
+
     logger.info('Plot result')
     plot_comparison(np.arange(2020, 2300), df_interest_rate, df_growth_rate, rho, eta, path_effects)
 

@@ -359,7 +359,7 @@ python calibrate_gas_cycle.py
 
 ** From gas concentration to forcing
 
-The model employs a standard power function, forcing = phi * (u^zeta - 1)/zeta,
+I employ a standard power function, forcing = phi * (u^zeta - 1)/zeta,
 where u represents the concentration of a well-mixed greenhouse gas (CO2, CH4, or N2O).
 The parameters phi and zeta are calibrated for each gas, individually, to align with RCMIP data.
 
@@ -407,6 +407,7 @@ python process_emission_data.py
 The output files will be stored in ~./data_processed/gdp_pop~ and ~./data_processed/emissions~ directories.
 
 The following script allows us to visually inspect the generated files:
+
 #+begin_src shell :results output :exports both
 python plot_rff_projections.py
 #+end_src
@@ -416,9 +417,32 @@ python plot_rff_projections.py
 
 *** Savings rate
 
+#+begin_src shell :results output :exports both
+python calibrate_savings_rate.py
+#+end_src
+[[./output/fig_savings_rate.svg]]
 
 *** Preference parameters
 
+Obtain the replication package for Bauer and Rudebusch (2023) from [[https://www.michaeldbauer.com/][Michael Bauer's website]].
+Estimate the parameter values of their interest rate model (~estimate_uc.r~)
+and save the results at ~./data_processed/uc_estimates_y10.RData~.
+
+Then run the model to generate future projections of interest rate:
+
+#+begin_src shell :results output :exports both
+Rscript simulate_interest_rate.r
+#+end_src
+[[./output/fig_interest_rate.svg]]
+
+I compare the projections of interest rate and per-capita income growth
+and choose preference parameters (rho and eta)
+that makes the distributions of the two projections as close as possible.
+
+#+begin_src shell :results output :exports both
+python calibrate_rho_eta.py
+#+end_src
+[[./output/fig_rho_eta_g.svg]]
 
 *** Damage function
 
