@@ -239,6 +239,10 @@ def main():
     args = parse_args()
     model_id = args.model_id
     variant_label = 'r1i1p1f1'
+    if model_id in ["CNRM-CM6-1"]:
+        variant_label = 'r1i1p1f2'
+    if model_id in ["HadGEM3-GC31-LL"]:
+        variant_label = 'r1i1p1f3'
 
     fig = plot_historical(model_id, variant_label)
 

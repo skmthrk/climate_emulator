@@ -40,17 +40,18 @@ def load_data(model_id, var_id, variant_label, experiment_ids):
         file_name = rf'{var_id}_{model_id}_{experiment_id}_{variant_label}.csv'
         file_path = os.path.join(input_dir, file_name)
         logger.info(f"Processing {file_name}")
-        with open(file_path, 'r') as csvfile:
-            reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-            reader.__next__()
-            for t in reader:
-                year, value = int(t[0]), float(t[1])
-                years.append(year)
-                values.append(value)
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as csvfile:
+                reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+                reader.__next__()
+                for t in reader:
+                    year, value = int(t[0]), float(t[1])
+                    years.append(year)
+                    values.append(value)
 
-        years = np.array(years) - years[0] + 1850
-        values = np.array(values)
-        data[experiment_id] = (years, values)
+            years = np.array(years) - years[0] + 1850
+            values = np.array(values)
+            data[experiment_id] = (years, values)
 
     return data
 
@@ -98,6 +99,8 @@ def plot_experiments(model_id, var_id, variant_label):
             for exp_id in ['abrupt-4xCO2', 'abrupt-2xCO2']:
                 c = colors[count]
                 count += 1
+                if exp_id not in data:
+                    continue
                 years, vals = data[exp_id]
                 yearminmax = min(yearminmax, max(years))
                 ax.plot(years, vals, label=f"{exp_id}", c=c)
@@ -128,10 +131,11 @@ def plot_experiments(model_id, var_id, variant_label):
     # put them together in a single figure
     ax = axes[-1]
     for experiment_id in ['abrupt-4xCO2', 'abrupt-2xCO2', '1pctCO2','piControl']:
-        years, vals = data[experiment_id]
-        c = cs[experiment_id]
-        j = list(years).index(yearminmax)
-        ax.plot(years[:j], vals[:j], label=f"{experiment_id}", c=c)
+        if experiment_id in data:
+            years, vals = data[experiment_id]
+            c = cs[experiment_id]
+            j = list(years).index(yearminmax)
+            ax.plot(years[:j], vals[:j], label=f"{experiment_id}", c=c)
     xlim = list(ax.get_xlim())
     ylim = list(ax.get_ylim())
     dx = (xlim[1]-xlim[0])/100
@@ -161,6 +165,11 @@ def main():
     args = parse_args()
     model_id = args.model_id
     variant_label = 'r1i1p1f1'
+
+    if model_id in ["CNRM-CM6-1"]:
+        variant_label = 'r1i1p1f2'
+    if model_id in ["HadGEM3-GC31-LL"]:
+        variant_label = 'r1i1p1f3'
 
     var_ids = ['tas', 'rsdt', 'rsut', 'rlut']
     for var_id in var_ids:

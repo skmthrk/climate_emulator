@@ -110,11 +110,12 @@ def build_data(input_dir, output_dir, model_id, experiment_id, var_id):
     output = []
     for _, lines in output_data:
         output += lines
-    file_name = f"{var_id}_{model_id}_{experiment_id}_{variant_label}.csv"
-    file_path = os.path.join(output_dir, file_name)
-    with open(file_path, 'w') as f:
-        f.write(f"year,{var_id}\n")
-        f.write('\n'.join(output))
+    if output:
+        file_name = f"{var_id}_{model_id}_{experiment_id}_{variant_label}.csv"
+        file_path = os.path.join(output_dir, file_name)
+        with open(file_path, 'w') as f:
+            f.write(f"year,{var_id}\n")
+            f.write('\n'.join(output))
 
 def main():
 

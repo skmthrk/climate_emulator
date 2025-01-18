@@ -120,8 +120,8 @@ def area(da):
     # sanity check
     A_true = 510065621 # Earth's surface area in square kilometer
     A_sum = A.sum() # must be close to Earth's surface area
-    logger.info(f' - A_tru: {A_true}')
-    logger.info(f' - A_sum: {A_sum}')
+    print(f' - A_tru: {A_true}')
+    print(f' - A_sum: {A_sum}')
 
     # convert the area matrix to data array with lat/lon info and units
     lat_da = xr.DataArray(lat_data, dims="lat", attrs={"units": da.lat.units})
