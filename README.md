@@ -1,19 +1,13 @@
 
-# Table of Contents
-
-1.  [Climate emulator and its applications to economic analysis](#org1c1ceb8)
-    1.  [Data processing](#org7fdaf81)
-    2.  [Plotting experimental data](#org1185fdc)
-    3.  [Climate emulator](#org57ddec4)
-    4.  [References](#orgcff5414)
-
-
-<a id="org1c1ceb8"></a>
-
 # Climate emulator and its applications to economic analysis
 
+1.  [Data processing](#org89e0a9d)
+2.  [Plotting experimental data](#org8a2bb4e)
+3.  [Climate emulator](#org98b387c)
+4.  [References](#org2f7887e)
 
-<a id="org7fdaf81"></a>
+
+<a id="org89e0a9d"></a>
 
 ## Data processing
 
@@ -26,10 +20,10 @@ Next, process the temperature and radiation data to generate global-mean time se
 
     python process_cmip_data.py [--model_id MIROC6]
 
-The \`&#x2013;model<sub>id</sub>\` argument allows for specifying a particular climate model, with `MIROC6` as the default.
+The `--model_id` argument allows for specifying a particular climate model, with `MIROC6` as the default.
 
 
-<a id="org1185fdc"></a>
+<a id="org8a2bb4e"></a>
 
 ## Plotting experimental data
 
@@ -50,7 +44,7 @@ After preprocessing the CMIP data, visualizations can be generated to examine th
 The generated figures will be stored in `./output` directory.
 
 
-<a id="org57ddec4"></a>
+<a id="org98b387c"></a>
 
 ## Climate emulator
 
@@ -69,7 +63,7 @@ of the calibrated model:
 ![img](./output/fig_evaluate_emulator.svg)
 
 
-<a id="orgcff5414"></a>
+<a id="org2f7887e"></a>
 
 ## References
 
