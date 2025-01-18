@@ -18,19 +18,19 @@ The `--model_id` argument allows for specifying a particular climate model, with
 After preprocessing the CMIP data, visualizations can be generated to examine the results. For example:
 
 ```python
-plot_experiment_tas.py [--model_id MIROC6]
+python plot_experiment_tas.py [--model_id MIROC6]
 ```
 
 ![piControl, abrupt-4xCO2, abrupt-2xCO2, 1pctCO2](output/fig_plot_experiment_tas.svg)
 
 ```python
-plot_historical_tas.py [--model_id MIROC6]
+python plot_historical_tas.py [--model_id MIROC6]
 ```
 
 ![historical](output/fig_plot_historical_tas.svg)
 
 ```python
-plot_scenario_tas.py [--model_id MIROC6]
+python plot_scenario_tas.py [--model_id MIROC6]
 ```
 
 ![ssp scenarios](output/fig_plot_scenario_tas.svg)
