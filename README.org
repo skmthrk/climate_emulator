@@ -112,10 +112,13 @@ tas_Amon_MIROC6_ssp460_r1i1p1f1_gn_201501-210012.nc
 tas_Amon_MIROC6_ssp585_r1i1p1f1_gn_201501-210012.nc
 #+end_example
 
-Next, process the temperature and radiation data to generate global-mean time series, outputting the results as .csv files. This can be done using the provided Python script:
+Next, process the temperature and radiation data to generate global-mean time series, outputting the results as csv files.
+This can be done using the provided Python script:
+
 #+begin_src python
 python process_cmip_data.py [--model_id MIROC6]
 #+end_src
+
 The ~--model_id~ argument allows for specifying a particular climate model, with ~MIROC6~ as the default.
 
 The processed data will be stored in ~./data_processed~ directory.
@@ -154,6 +157,7 @@ tas_MIROC6_ssp585_r1i1p1f1.csv
 ** Plotting experimental data
 
 After preprocessing the CMIP data, visualizations can be generated to examine the results. For example:
+
 #+begin_src shell
 python plot_experiment.py [--model_id MIROC6]
 #+end_src
