@@ -272,14 +272,24 @@ python evaluate_emulator.py [--model_id MIROC6]
 
 *** CO2
 
-First use the 4-layer linear carbon cycle model
-and calibrate the model parameters to match the experimental data (~PI100~, ~PD100~, ~PI500~) of Joos et al. (2013).
+For the carbon cycle, linear models adequately represent impulse responses given a background concentration level.
+However, these responses are known to be influenced by background concentration levels,
+meaning that nonlinear feedback mechanisms must also be considered.
+
+We address this through a two-step approach.
+First, we employ a linear model and calibrate the model parameters based on the impulse response experiment of Joos et al. (2013).
+Then, taking the calibrated carbon cycle parameters given,
+we calibrate the scaling factor as a function of cumulative carbon emission to capture the non-linear feedback effects.
+
+Let us begin with a four-layer linear carbon cycle model
+and calibrate its parameters using experimental data (~PI100~, ~PD100~, ~PI500~) from Joos et al. (2013).
 
 #+begin_src shell :results output :exports both
 python calibrate_co2_cycle_linear.py
 #+end_src
 
-This generates three different sets of parameter values.
+This generates three different sets of parameter values,
+each optimized for a particular background concentration level.
 
 [[./output/fig_co2_cycle_linear.svg]]
 
