@@ -5,18 +5,6 @@ from tqdm.auto import tqdm
 import multiprocessing as mp
 import numpy as np
 
-colors = [
-    '#348ABD', # 0: blue
-    '#7A68A6', # 1: purple
-    '#A60628', # 2: red
-    '#467821', # 3: green
-    '#188487', # 4: breen
-    '#CF4457', # 5: pink
-    '#E24A33', # 6: orange
-]
-
-var_ids = ['co2', 'ch4', 'n2o']
-
 def damage_func(T, parameters):
     a1 = parameters['a1']
     a2 = parameters['a2']
@@ -67,13 +55,13 @@ def build_damage(model_id, pulse_var, pulse_size=1, pulse_year=2020):
             reader = csv.reader(f, delimiter=',')
             gdp_years = np.array(reader.__next__()).astype(int)
             gdp_values = np.array(reader.__next__()).astype(float)
-            
+
         with open(os.path.join(data_dir_nopulse, f'tas_{model_id}', f'tas_sample_{sample}.csv'), 'r') as f:
             reader = csv.reader(f, delimiter=',')
             years = np.array(reader.__next__()).astype(int)
             tas_values_nopulse = np.array(reader.__next__()).astype(float)
         damage_values_nopulse = damage_func(tas_values_nopulse, parameters)
-            
+
         with open(os.path.join(data_dir_pulse, f'tas_under_{pulse_var}_pulse_{model_id}', f'tas_sample_{sample}.csv'), 'r') as f:
             reader = csv.reader(f, delimiter=',')
             years = np.array(reader.__next__()).astype(int)
@@ -82,7 +70,7 @@ def build_damage(model_id, pulse_var, pulse_size=1, pulse_year=2020):
 
         gdp_values = np.append(np.zeros(len(years)-len(gdp_years)), gdp_values)
         delta_damage_values = (damage_values_pulse - damage_values_nopulse)*gdp_values*conversion_rate
-        
+
         with open(os.path.join(out_dir_damage, f"damage_sample_{sample}.csv"), 'w') as f:
             f.write(','.join(str(year) for year in years))
             f.write('\n')
@@ -92,7 +80,7 @@ def build_damage(model_id, pulse_var, pulse_size=1, pulse_year=2020):
             f.write(','.join(str(year) for year in years))
             f.write('\n')
             f.write(','.join(str(value) for value in damage_values_nopulse))
-            
+
 def process_func(args):
     '''
     function for multiprocessing

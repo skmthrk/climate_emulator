@@ -5,17 +5,6 @@ from tqdm.auto import tqdm
 import multiprocessing as mp
 import numpy as np
 
-colors = [
-    '#348ABD', # 0: blue
-    '#7A68A6', # 1: purple
-    '#A60628', # 2: red
-    '#467821', # 3: green
-    '#188487', # 4: breen
-    '#CF4457', # 5: pink
-    '#E24A33', # 6: orange
-]
-
-var_ids = ['co2', 'ch4', 'n2o']
 
 def build_delta_tas(model_id, pulse_var, pulse_size=1, pulse_year=2020):
 
@@ -49,12 +38,12 @@ def build_delta_tas(model_id, pulse_var, pulse_size=1, pulse_year=2020):
                 reader = csv.reader(f, delimiter=',')
                 years = np.array(reader.__next__()).astype(int)
                 values = np.array(reader.__next__()).astype(float)
-                
+
             with open(os.path.join(os.path.join(data_dir_nopulse, var_id), f"{var_id}_{var_type}_sample_{sample}.csv"), 'r') as f:
                 reader = csv.reader(f, delimiter=',')
                 years = np.array(reader.__next__()).astype(int)
                 values -= np.array(reader.__next__()).astype(float)
-    
+
             with open(os.path.join(out_dir, f'{var_id}_{var_type}_sample_{sample}.csv'), 'w') as f:
                 f.write(','.join(str(year) for year in years))
                 f.write('\n')
@@ -64,7 +53,7 @@ def build_delta_tas(model_id, pulse_var, pulse_size=1, pulse_year=2020):
             reader = csv.reader(f, delimiter=',')
             years = np.array(reader.__next__()).astype(int)
             values = np.array(reader.__next__()).astype(float)
-            
+
         with open(os.path.join(os.path.join(data_dir_nopulse, f'tas_{model_id}'), f"tas_sample_{sample}.csv"), 'r') as f:
             reader = csv.reader(f, delimiter=',')
             years = np.array(reader.__next__()).astype(int)
@@ -74,7 +63,7 @@ def build_delta_tas(model_id, pulse_var, pulse_size=1, pulse_year=2020):
             f.write(','.join(str(year) for year in years))
             f.write('\n')
             f.write(','.join(str(value) for value in values))
-            
+
 def process_func(args):
     '''
     function for multiprocessing

@@ -511,7 +511,6 @@ social cost of ch4 (MIROC6): 377.2429176555695 (USD/tCH4)
 social cost of n2o (MIROC6): 12971.253584056005 (USD/tN2O)
 #+end_example
 
-
 ** References
 
 - Barrage, L., & Nordhaus, W. (2024). [[https://doi.org/10.1073/pnas.2312030121][Policies, projections, and the social cost of carbon: Results from the DICE-2023 model]]. Proceedings of the National Academy of Sciences of the United States of America, 121(13), e2312030121.
