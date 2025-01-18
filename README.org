@@ -185,9 +185,41 @@ python calibrate_emulator.py [MIROC6]
 
 #+RESULTS:
 #+begin_example
--- Nelder-Mead (Best method) --
- fvalue: 5.81538625461283 (attempt 1)
- status: Success in 20.535226821899414 seconds
+--- BFGS
+ fvalue: 5.815386799558981 (attempt 1)
+ status: Success in 3.691662073135376 seconds
+ message: Optimization terminated successfully.
+ estimated parameters (vs initial guess):
+  1.8550 +-0.4758 (1.9937)
+  4.5689 +-0.8068 (5.1617)
+  354.4277 +-62.7558 (356.3721)
+  1.5986 +-0.1792 (1.4604)
+  1.0627 +-0.0882 (1.0577)
+  0.4566 +-0.1749 (0.3517)
+  0.7309 +-0.0923 (0.7535)
+  0.9718 +-0.1588 (1.0787)
+  0.0013 +-1.8005 (0.5765)
+  10.4458 +-0.8570 (9.6197)
+
+--- SLSQP
+ fvalue: 5.815386799558981 (attempt 1)
+ status: Success in 0.04993581771850586 seconds
+ message: Optimization terminated successfully
+ estimated parameters (vs initial guess):
+  1.8550 +-0.4758 (1.9937)
+  4.5689 +-0.8068 (5.1617)
+  354.4277 +-62.7558 (356.3721)
+  1.5986 +-0.1792 (1.4604)
+  1.0627 +-0.0882 (1.0577)
+  0.4566 +-0.1749 (0.3517)
+  0.7309 +-0.0923 (0.7535)
+  0.9718 +-0.1588 (1.0787)
+  0.0013 +-1.8005 (0.5765)
+  10.4458 +-0.8570 (9.6197)
+
+--- Nelder-Mead (Best method)
+ fvalue: 5.815386254608917 (attempt 1)
+ status: Success in 12.236296892166138 seconds
  message: Optimization terminated successfully.
  estimated parameters (vs initial guess):
   1.8550 +-0.4758 (1.9937)
@@ -198,7 +230,7 @@ python calibrate_emulator.py [MIROC6]
   0.4566 +-0.1749 (0.3517)
   0.7309 +-0.0923 (0.7535)
   0.9718 +-0.1588 (1.0787)
-  0.0000 +-1.7548 (0.5765)
+  0.0000 +-1.8005 (0.5765)
   10.4459 +-0.8570 (9.6197)
 #+end_example
 

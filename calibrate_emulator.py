@@ -466,8 +466,8 @@ class Model(object):
                 print()
 
         print('\n=== Summary ===\n')
-        print(f" - sample size n: {len(self.kf.Y)}")
-        print(f" - seed: {seed}")
+        print(f" sample size n: {len(self.kf.Y)}")
+        print(f" seed: {seed}")
         print()
         for method in results:
             fvalue = results[method]['fvalue']
@@ -477,17 +477,16 @@ class Model(object):
             message = results[method]['message']
             parameters = list(results[method]['parameters'])
             if method == best_method:
-                print(f"*** {method} (Best method)")
+                print(f"--- {method} (Best method)")
                 self.parameters = parameters
             else:
-                print(f"*** {method}")
-            print(f" - fvalue: {fvalue} (attempt {attempt+1})")
-            print(f" - status: {status} in {elapsed_time} seconds")
-            print(f" - message: {message}")
-            print(f" - estimated parameters (vs initial guess):")
+                print(f"--- {method}")
+            print(f" fvalue: {fvalue} (attempt {attempt+1})")
+            print(f" status: {status} in {elapsed_time} seconds")
+            print(f" message: {message}")
+            print(f" estimated parameters (vs initial guess):")
             for parameter, parameter0, ce in zip(parameters, initial_guess, confidence_intvls):
                 print(f"  {parameter:.4f} +-{ce:.4f} ({parameter0:.4f})")
-
             print()
 
 
