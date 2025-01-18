@@ -273,7 +273,7 @@ python evaluate_emulator.py [--model_id MIROC6]
 *** CO2
 
 For the carbon cycle, linear models adequately represent impulse responses given a background concentration level.
-However, these responses are known to be influenced by background concentration levels,
+However, these responses are known to be influenced by background concentration levels (Joos et al., 2013),
 meaning that nonlinear feedback mechanisms must also be considered.
 
 We address this through a two-step approach.
@@ -287,12 +287,33 @@ and calibrate its parameters using experimental data (~PI100~, ~PD100~, ~PI500~)
 #+begin_src shell :results output :exports both
 python calibrate_co2_cycle_linear.py
 #+end_src
+[[./output/fig_co2_cycle_linear.svg]]
 
 This generates three different sets of parameter values,
 each optimized for a particular background concentration level.
 
-[[./output/fig_co2_cycle_linear.svg]]
+#+begin_src shell :results output :exports both
+ls ./output/parameter_co2_cycle_linear*.csv
+#+end_src
 
+#+RESULTS:
+: ./output/parameter_co2_cycle_linear_PD100.csv
+: ./output/parameter_co2_cycle_linear_PI100.csv
+: ./output/parameter_co2_cycle_linear_PI5000.csv
+
+For example:
+
+#+begin_src shell :results output :exports both
+cat ./output/parameter_co2_cycle_linear_PD100.csv
+#+end_src
+
+#+RESULTS:
+: var_id,delta21,delta31,delta12,delta32,delta13,delta43,delta34
+: co2,0.01854978884905409,0.01206756382904478,0.030861326590195495,1.4799916209866694e-14,0.011842834050843291,0.0022372207337764587,0.0011589024764729959
+
+With the carbon cycle matrix A calibrated as described,
+we incorporate a non-linear scaling factor, exp(gamma0 + gamma1 * M) * A, where M represents cumulative carbon emissions.
+The parameter gamma1 is intended to be negative, reflecting the potential weakening of the carbon cycle as the total carbon in the system increases.
 
 
 

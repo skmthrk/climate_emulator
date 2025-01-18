@@ -23,7 +23,7 @@ class NonlinearCarbonCycleModel:
         self.base_year = 2015
         self.base_year_idx = self.years.index(self.base_year)
         self.experiment_ids = ['PI100', 'PD100', 'PI5000']
-        self.emphasis_on_base_year = 10
+        self.emphasis_on_base_year = 10 # weight put on the base year in loss function
         self.var_ids = ['co2']
         self.var_types = ['emission', 'concentration']
         self.xbar = 278 * 7.82116 # ppm to GtCO2
@@ -75,7 +75,7 @@ class NonlinearCarbonCycleModel:
 
     @staticmethod
     def build_A(deltas):
-        """ 
+        """
         convert parameter list into carbon cycle matrix
         """
         [delta21, delta31, delta12, delta32, delta13, delta43, delta34] = deltas
@@ -91,7 +91,7 @@ class NonlinearCarbonCycleModel:
         A[4-1,3-1] = delta43
         A[3-1,4-1] = delta34
         A[4-1,4-1] = -delta34
-    
+
         return A
 
     @staticmethod
@@ -111,7 +111,7 @@ class NonlinearCarbonCycleModel:
         x_vals = np.zeros((4, len(self.years)+1))
         x_vals[0,0] = x_vals00
         for i, year in enumerate(self.years):
-            M = sum(x_vals[:, i])
+            M = sum(x_vals[:, i]) # cumulative emission
             alpha = np.exp(gamma0 + gamma1*M)
             A = self.build_A(deltas)/alpha
             Ad, Bd = self.discretize_model(A)
@@ -135,7 +135,7 @@ class NonlinearCarbonCycleModel:
     def estimate_gammas(self, base_experiment):
 
         logger.info(f"Estimating gammas for {base_experiment}-based model")
-    
+
         deltas = self.deltas[base_experiment]
         gammas = [0, 0] # initial value
         bounds = [(None, None) for i in range(len(gammas))]
@@ -144,10 +144,10 @@ class NonlinearCarbonCycleModel:
         maxiter = 5000
         res = optimize.minimize(fun=lambda gammas: self.loss_function(gammas, deltas=deltas), x0=gammas, method=method, bounds=bounds, tol=tol, options={'maxiter': maxiter})
         gammas = list(res.x)
-    
+
         logger.info(f"Optimization result: {res.message} in {res.nit} iterations")
         logger.info(f"Minvalue = {res.fun} at {gammas}")
-    
+
         # save estimated parameters
         csv_path = f"./output/parameter_co2_cycle_nonlinear_{base_experiment}.csv"
         with open(csv_path, 'w') as f:
@@ -161,13 +161,13 @@ class NonlinearCarbonCycleModel:
         self.gammas_estimate[base_experiment] = gammas
 
     def plot_result(self):
-    
+
         fig, axes = plt.subplots(2, 3, figsize=(15, 10), frameon=False)
         figname = f"./output/fig_co2_cycle.svg"
-    
+
         for row in [0, 1]:
             for idx, (base_experiment, ax) in enumerate(zip(self.experiment_ids, axes[row,:])):
-        
+
                 deltas = self.deltas[base_experiment]
                 if row == 0:
                     # plot linear model
@@ -177,12 +177,12 @@ class NonlinearCarbonCycleModel:
                     # plot nonlinear model
                     gammas = self.gammas_estimate[base_experiment]
                     title = f"{base_experiment} (nonlinear model)"
-        
+
                 for j, scenario in enumerate(self.scenarios):
                     x_obs = self.datasets['concentration'][scenario]['co2']
                     x_obs_normalized = x_obs - self.xbar
                     ax.plot(self.years, x_obs_normalized + self.xbar, label=f'{scenario}', c=colors[j], ls='--')
-        
+
                     u = self.datasets['emission'][scenario]['co2']
                     x_vals00 = x_obs_normalized[0]
                     x_vals = self.generate_x_vals(deltas, gammas, x_vals00, u)
@@ -192,7 +192,7 @@ class NonlinearCarbonCycleModel:
                 ax.set_title(title)
                 if idx == 2:
                     ax.legend(loc='upper left', frameon=False, facecolor=None)
-    
+
         for ax in axes.ravel():
             ax.set_facecolor('none')
             for posi in ['top', 'right']:
