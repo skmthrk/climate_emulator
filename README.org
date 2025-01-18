@@ -48,10 +48,10 @@ python calibrate_emulator.py [MIROC6]
 #+RESULTS:
 #+begin_example
 Nelder-Mead (Best method)
- - fvalue: 5.81538625461283 (attempt 1)
- - status: Success in 20.535226821899414 seconds
- - message: Optimization terminated successfully.
- - estimated parameters (vs initial guess):
+ | fvalue: 5.81538625461283 (attempt 1)
+ | status: Success in 20.535226821899414 seconds
+ | message: Optimization terminated successfully.
+ | estimated parameters (vs initial guess):
   1.8550 +-0.4758 (1.9937)
   4.5689 +-0.8068 (5.1617)
   354.4272 +-62.7558 (356.3721)
