@@ -424,20 +424,18 @@ python calibrate_savings_rate.py
 
 *** Preference parameters
 
-Obtain the replication package for Bauer and Rudebusch (2023) from [[https://www.michaeldbauer.com/][Michael Bauer's website]].
-Estimate the parameter values of their interest rate model (~estimate_uc.r~)
-and save the results at ~./data_processed/uc_estimates_y10.RData~.
+Download the replication package for Bauer and Rudebusch (2023) from [[https://www.michaeldbauer.com/][Michael Bauer's website]].
+Estimate the parameters of their interest rate model using the script ~estimate_uc.r~, and save the results to ~./data_processed/uc_estimates_y10.RData~.
 
-Then run the model to generate future projections of interest rate:
+Then, use the estimated model to generate future interest rate projections:
 
 #+begin_src shell :results output :exports both
 Rscript simulate_interest_rate.r
 #+end_src
 [[./output/fig_interest_rate.svg]]
 
-I compare the projections of interest rate and per-capita income growth
-and choose preference parameters (rho and eta)
-that makes the distributions of the two projections as close as possible.
+I align the distributions of projected interest rate (Bauer and Rudebusch) and per-capita income growth (RFF) by selecting preference parameters (rho and eta) that
+minimize the discrepancy between these projections.
 
 #+begin_src shell :results output :exports both
 python calibrate_rho_eta.py
@@ -445,6 +443,16 @@ python calibrate_rho_eta.py
 [[./output/fig_rho_eta_g.svg]]
 
 *** Damage function
+
+Save the point estimates of climate damage compiled by Barrage and Nordhaus (2024) as ~./data_raw/Barrage2024/dice2023.csv~.
+
+I choose the damage function parameters to globally emulate the estimated damages:
+
+#+begin_src shell :results output :exports both
+python calibrate_damage_function.py
+#+end_src
+[[./output/fig_damage_dice2023.svg]]
+
 
 ** Social cost of CO2, CH4, and N2O
 
