@@ -349,15 +349,26 @@ The PI5000-based calibration appears to yield the most satisfying results among 
 
 *** CH4 and N20
 
-For CH4 and N2O,
-linear gas cycle models are good enough for my purpose.
+For CH4 and N2O, linear gas cycle models without considering interactions between the gases appear sufficient for my purposes.
 
 #+begin_src shell :results output :exports both
 python calibrate_gas_cycle.py
 #+end_src
 [[./output/fig_gas_cycle.svg]]
 
+** From gas concentration to forcing
 
+The model employs a standard power function, forcing = phi * (u^zeta - 1)/zeta,
+where u represents the concentration of a well-mixed greenhouse gas (CO2, CH4, or N2O).
+The parameters phi and zeta are calibrated for each gas, individually, to align with RCMIP data.
+
+For CO2, zeta is manually set to 0 (resulting in a logarithmic relationship)
+because this provides a good fit and sometimes simplifies analytical calculations.
+
+#+begin_src shell :results output :exports both
+python calibrate_forcing.py
+#+end_src
+[[./output/fig_forcing.svg]]
 
 
 ** References

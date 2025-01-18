@@ -108,7 +108,7 @@ class ForcingModel:
         self.parameters_estimate[var_id] = parameters
 
     def plot_result(self):
-        
+
         fig, axes = plt.subplots(1, 3, figsize=(15, 5), frameon=False)
         years = self.years
         figname = f"./output/fig_forcing.svg"
@@ -119,7 +119,7 @@ class ForcingModel:
 
                 x_obs = self.datasets['forcing'][scenario][var_id]
                 ax.plot(years, x_obs, label=f'{scenario}', c=colors[j], ls='--')
-            
+
                 u = self.datasets['concentration'][scenario][var_id]
                 ubar = self.ubars[var_id]
                 x_vals = self.forcing_func(u, parameters) - self.forcing_func(ubar, parameters)
@@ -129,7 +129,7 @@ class ForcingModel:
             ax.set_title(f"{var_id.upper()}")
             if ax == axes[-1]:
                 ax.legend(loc='upper left', frameon=False, facecolor=None)
-            
+
         for ax in axes.ravel():
             ax.set_facecolor('none')
             for posi in ['top', 'right']:
