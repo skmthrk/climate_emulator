@@ -444,17 +444,30 @@ python calibrate_rho_eta.py
 
 *** Damage function
 
-Save the point estimates of climate damage compiled by Barrage and Nordhaus (2024) as ~./data_raw/Barrage2024/dice2023.csv~.
+Store the climate damage point estimates from Barrage and Nordhaus (2024) in ~/data_raw/Barrage2024/dice2023.csv~.
 
-I choose the damage function parameters to globally emulate the estimated damages:
+The damage function parameters are selected to globally replicate these estimated damages:
 
 #+begin_src shell :results output :exports both
 python calibrate_damage_function.py
 #+end_src
 [[./output/fig_damage_dice2023.svg]]
 
-
 ** Social cost of CO2, CH4, and N2O
+
+I estimate the social cost of CO2, CH4, and N2O in several steps.
+
+*** STEP 1
+
+Create future projections of atmospheric concentrations and radiative forcing by combining
+RFF emission projections with gas cycle models:
+
+#+begin_src shell :results output :exports both
+python calculate_scc_1_emis_conc_forc.py
+#+end_src
+[[./output/fig_co2_samples.png]]
+[[./output/fig_ch4_samples.png]]
+[[./output/fig_n2o_samples.png]]
 
 
 
