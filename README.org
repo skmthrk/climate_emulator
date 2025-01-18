@@ -315,21 +315,16 @@ With the carbon cycle matrix, say A, calibrated as described,
 I incorporate a non-linear scaling factor, exp(-gamma0 - gamma1 * M) * A, where M represents cumulative carbon emissions.
 The parameter gamma1 is intended to be positive, reflecting the potential weakening of the carbon cycle as the total carbon in the system increases.
 
-With gamma0=gamma1=0 (i.e., no feedback adjustment),
-neither of the calibrated linear model (~PD100~, ~PI100~, ~PI5000~)
-can replicate the output of historical/scenario experiments.
-
-I calibrate gamma0 and gamma1
-in such a way that the calibrated non-linear model can
-emulate the output of historical/scenario experiments well:
+When feedback adjustments are disabled (gamma0=gamma1=0),
+none of the calibrated linear models (~PD100~, ~PI100~, ~PI5000~) accurately reproduce the output of historical or scenario experiments (as compiled in RCMIP).
+However, by calibrating gamma0 and gamma1, the non-linear model is able to effectively emulate the results from these experiments.
 
 #+begin_src shell :results output :exports both
 python calibrate_co2_cycle_nonlinear.py
 #+end_src
 [[./output/fig_co2_cycle.svg]]
 
-Again, this generates three different sets of non-linear parameter values,
-each using different linear-model parameter values (~PD100~, ~PI100~, ~PI5000~).
+This process yields three distinct sets of non-linear parameter values, derived from three different sets of linear model parameters (~PD100~, ~PI100~, ~PI5000~).
 
 #+begin_src shell :results output :exports both
 ls ./output/parameter_co2_cycle_nonlinear*.csv
@@ -350,7 +345,20 @@ cat ./output/parameter_co2_cycle_nonlinear_PD100.csv
 : var_id,gamma0,gamma1
 : co2,-0.6691877083124073,0.0002591773687699655
 
-It looks like the PI5000-based calibration performs best among the three variants considered here.
+The PI5000-based calibration appears to yield the most satisfying results among the three variants evaluated.
+
+*** CH4 and N20
+
+For CH4 and N2O,
+linear gas cycle models are good enough for my purpose.
+
+#+begin_src shell :results output :exports both
+python calibrate_gas_cycle.py
+#+end_src
+[[./output/fig_gas_cycle.svg]]
+
+
+
 
 ** References
 
