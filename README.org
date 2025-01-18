@@ -157,25 +157,19 @@ After preprocessing the CMIP data, visualizations can be generated to examine th
 #+begin_src shell
 python plot_experiment.py [--model_id MIROC6]
 #+end_src
-
 [[./output/fig_plot_experiment_tas_MIROC6.svg]]
-
 [[./output/fig_plot_experiment_rsdt_MIROC6.svg]]
-
 [[./output/fig_plot_experiment_rsut_MIROC6.svg]]
-
 [[./output/fig_plot_experiment_rlut_MIROC6.svg]]
 
 #+begin_src shell
 python plot_historical_tas.py [--model_id MIROC6]
 #+end_src
-
 [[./output/fig_plot_historical_tas_MIROC6.svg]]
 
 #+begin_src shell
 python plot_scenario_tas.py [--model_id MIROC6]
 #+end_src
-
 [[./output/fig_plot_scenario_tas_MIROC6.svg]]
 
 The generated figures will be stored in ~./output~ directory.
@@ -268,7 +262,6 @@ of the calibrated model:
 #+begin_src shell
 python evaluate_emulator.py [--model_id MIROC6]
 #+end_src
-
 [[./output/fig_evaluate_emulator_MIROC6.svg]]
 
 ** References
