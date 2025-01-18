@@ -349,7 +349,8 @@ The PI5000-based calibration appears to yield the most satisfying results among 
 
 *** CH4 and N20
 
-For CH4 and N2O, linear gas cycle models without considering interactions between the gases appear sufficient for my purposes.
+For CH4 and N2O, I use linear gas cycle models without considering interactions between the gases,
+which is not perfect, but appear sufficient for the moment.
 
 #+begin_src shell :results output :exports both
 python calibrate_gas_cycle.py
