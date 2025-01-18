@@ -486,16 +486,19 @@ Next, using an emulator calibrated against CMIP climate models,
 python calculate_scc_2_forc_temp.py
 #+end_src
 
-
-*** STEP 3: concentration projections to temperature projections
+*** STEP 3: temperature change
 
 #+begin_src shell :results output :exports both
 python calculate_scc_3_delta_tas.py
 #+end_src
 
+*** STEP 4: damage
+
 #+begin_src shell :results output :exports both
 python calculate_scc_4_damage.py
 #+end_src
+
+*** STEP 5: present value
 
 #+begin_src shell :results output :exports both
 python calculate_scc_5_present_value.py
