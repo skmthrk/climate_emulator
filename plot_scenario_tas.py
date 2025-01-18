@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 import cartopy.crs as ccrs
 
-from utils import list_files, make_logger, load_japanese_font, plot_contourf, colors
+from utils import list_files, make_logger, plot_contourf, colors
 
 logger = make_logger()
 

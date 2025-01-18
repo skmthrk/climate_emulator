@@ -1,4 +1,4 @@
-import os 
+import os
 import re
 import csv
 import sys
@@ -13,7 +13,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 
-from utils import list_files, make_logger, load_japanese_font, plot_contourf, colors
+from utils import list_files, make_logger, plot_contourf, colors
 
 logger = make_logger()
 
@@ -73,7 +73,7 @@ def load_timeseries(var_id, model_id, variant_label, experiment_id, data_dir):
 
     if experiment_id == 'historical':
         years = np.array(years) - years[0] + 1850
-    
+
     logger.info(f"Time series loaded successfully. Years range: {min(years)}-{max(years)}")
     return np.array(years), np.array(values)
 
@@ -93,13 +93,13 @@ def load_cmip_dataset(var_id, model_id, variant_label, data_dir):
     """
     logger.info(f"Loading CMIP dataset for {var_id}, {model_id}, {variant_label}")
     cmip_dataset = {}
-    
+
     # historical
     experiment_id = 'historical'
     years, values = load_timeseries(var_id, model_id, variant_label, experiment_id, data_dir)
     hist_value = values[0]
     cmip_dataset[experiment_id] = (years, values - hist_value)
-    
+
     # SSP
     experiment_ids = ['ssp119', 'ssp245', 'ssp370', 'ssp460', 'ssp585']
     for experiment_id in experiment_ids:
@@ -124,7 +124,7 @@ def load_concentration_dataset(data_dir, unit_conversion, baseline_concentration
     years = np.arange(1750, 2501, 1)
     scenarios = ['ssp119', 'ssp245', 'ssp370', 'ssp460', 'ssp585']
     var_ids = ['co2', 'ch4', 'n2o']
-    
+
     file_name = "rcmip-concentrations-annual-means-v5-1-0.csv"
     file_path = os.path.join(data_dir, file_name)
     logger.info(f"Reading concentration data from {file_path}")
@@ -335,14 +335,11 @@ class Emulator:
         kappa1 = parameters['kappa1']
         kappa2 = parameters['kappa2']
         epsilon = parameters['epsilon']
-    
-        A = np.zeros((3,3))
-        A[1-1,1-1] = -gamma
-        A[2-1,1-1] = 1/chi1
-        A[2-1,2-1] = -(kappa1 + epsilon + kappa2)/chi1
-        A[2-1,3-1] = (kappa2 + epsilon)/chi1
-        A[3-1,2-1] = kappa2/chi2
-        A[3-1,3-1] = -kappa2/chi2
+
+        A = np.array(
+            [[-gamma,                               0.0,                     0.0],
+             [1/chi1, -(kappa1 + epsilon + kappa2)/chi1, (kappa2 + epsilon)/chi1],
+             [   0.0,                       kappa2/chi2,            -kappa2/chi2]])
 
         return A
 
@@ -360,7 +357,7 @@ class Emulator:
         if experiment_id == 'abrupt-4xCO2':
             u = lambda t: self.parameters['Fbar']
             years = self.calibration_dataset[experiment_id]['T1'][0]
-            x_init = [self.parameters["Fbar"], 0, 0]
+            x_init = [0, 0, 0] # [self.parameters["Fbar"], 0, 0]
             t_start, t_end = years[0], years[-1]
         elif experiment_id == 'historical':
             years, forcing = self.generate_forcing(experiment_id)
@@ -375,7 +372,7 @@ class Emulator:
                 self.simulate('historical')
             x_init = self.x_hist_end
             t_start, t_end = years[0], years[-1]
-            
+
         t_domain = np.linspace(t_start, t_end, 2000)
         logger.debug(f"Solving ODE for {experiment_id} from {t_start} to {t_end}")
         x_values = odeint(self.dxdt, x_init, t_domain, args=(u,))
@@ -429,9 +426,8 @@ def plot_figure(model_id, calibration_dataset, cmip_dataset, model_output):
         matplotlib.figure.Figure: The generated figure.
     """
     # plot
-    font_path = './font/NotoSansJP-Regular.ttf'
     font_size = 12
-    load_japanese_font(font_path, font_size)
+    plt.rcParams.update({'font.size': font_size})
     matplotlib.rc('axes', lw=0.25, edgecolor='k')
     path_effects = [pe.withStroke(linewidth=3, foreground="w")]
 
@@ -442,28 +438,28 @@ def plot_figure(model_id, calibration_dataset, cmip_dataset, model_output):
     ax1 = fig.add_subplot(gs[0:100,0:50-dw], facecolor='none')
     ax2 = fig.add_subplot(gs[0:100,50+dw:100], facecolor='none')
     letters = ['A', 'B']
-    
+
     ax = ax1
     experiment_id = 'abrupt-4xCO2'
     color = '#1e384d'
-    ax.plot(*model_output[experiment_id], label=f"{experiment_id} (簡易モデル)", c=color, path_effects=path_effects, lw=2.5)
+    ax.plot(*model_output[experiment_id], label=f"{experiment_id} (emulator)", c=color, path_effects=path_effects, lw=2.5)
     ax.scatter(*calibration_dataset[experiment_id]['T1'], label=f"{experiment_id} ({model_id})", c=color, zorder=0, marker='o', s=15, edgecolors='w', linewidth=0.9)
 
     ax = ax2
     experiment_id = 'historical'
     color = 'k'
-    ax.plot(*model_output[experiment_id], label=f"{experiment_id} (簡易モデル)", c=color, path_effects=path_effects, lw=2.5)
+    ax.plot(*model_output[experiment_id], label=f"{experiment_id} (emulator)", c=color, path_effects=path_effects, lw=2.5)
     ax.plot(*cmip_dataset[experiment_id], label=f"{experiment_id} ({model_id})", c=color, zorder=0, alpha=0.8, lw=1)
     scenario_ids = ['ssp119', 'ssp245', 'ssp370', 'ssp460', 'ssp585']
     for scenario_idx, scenario_id in enumerate(scenario_ids):
         color = colors[scenario_idx]
-        ax.plot(*model_output[scenario_id], label=f"{scenario_id} (簡易モデル)", c=color, path_effects=path_effects, lw=2.5)
+        ax.plot(*model_output[scenario_id], label=f"{scenario_id} (emulator)", c=color, path_effects=path_effects, lw=2.5)
         ax.plot(*cmip_dataset[scenario_id], label=f"{scenario_id} ({model_id})", c=color, zorder=0, alpha=0.8, lw=1)
-    
+
     for idx, ax in enumerate([ax1, ax2]):
         if idx == 0:
-            ax.set_ylabel('地表面気温偏差の全球年平均（K）')
-        ax.set_xlabel('年')
+            ax.set_ylabel('Surface temperature (K)')
+        ax.set_xlabel('Year')
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(handles[::-1], labels[::-1], title=None, loc='best')
         ax.set_xlim([1840, 2110])
@@ -495,14 +491,14 @@ def main():
 
     var_id = 'tas'
     variant_label = 'r1i1p1f1'
-    
+
     data_dir = './output'
     calibration_dataset = load_calibration_dataset(model_id, variant_label, data_dir)
     parameters = load_calibrated_parameters(model_id, variant_label, data_dir)
-    
+
     data_dir = "./data_processed"
     cmip_dataset = load_cmip_dataset(var_id, model_id, variant_label, data_dir)
-    
+
     data_dir = './data_raw/RCMIP'
     concentration_dataset = load_concentration_dataset(data_dir, unit_conversion, baseline_concentration)
     forcing_dataset = load_forcing_dataset(data_dir)
@@ -513,7 +509,7 @@ def main():
     emulator.concentration_dataset = concentration_dataset
     emulator.forcing_dataset = forcing_dataset
     emulator.baseline_concentration = baseline_concentration
-    
+
     # model output for plotting
     model_output = {}
     experiment_ids = ['abrupt-4xCO2', 'historical', 'ssp119', 'ssp245', 'ssp370', 'ssp460', 'ssp585']

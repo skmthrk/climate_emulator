@@ -535,9 +535,9 @@ if __name__ == "__main__":
     rsdt_control_mean = np.mean(dataset['piControl']['rsdt'][-1])
     rsut_control_mean = np.mean(dataset['piControl']['rsut'][-1])
     rlut_control_mean = np.mean(dataset['piControl']['rlut'][-1])
-    rsdt = np.array(dataset[experiment_id]['rsdt'][-1]) - rsdt_control_mean
-    rsut = np.array(dataset[experiment_id]['rsut'][-1]) - rsut_control_mean
-    rlut = np.array(dataset[experiment_id]['rlut'][-1]) - rlut_control_mean
+    rsdt = np.array(dataset[experiment_id]['rsdt'][-1]) # - rsdt_control_mean
+    rsut = np.array(dataset[experiment_id]['rsut'][-1]) # - rsut_control_mean
+    rlut = np.array(dataset[experiment_id]['rlut'][-1]) # - rlut_control_mean
     rndt = rsdt - rsut - rlut
     #print(rndt)
 
