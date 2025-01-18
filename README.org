@@ -1,6 +1,6 @@
 * Climate emulator and its applications to economic analysis
 
-** Data processing
+** Climate data processing
 
 Retrieve raw CMIP data for surface air temperature (~tas~), incoming shortwave radiation (~rsdt~), outgoing shortwave radiation (~rsut~),
 outgoing longwave radiation (~rlut~), and grid cell area (~areacella~) from the [[https://esgf.llnl.gov/][Earth System Grid Federation]].
@@ -369,6 +369,25 @@ because this provides a good fit and sometimes simplifies analytical calculation
 python calibrate_forcing.py
 #+end_src
 [[./output/fig_forcing.svg]]
+
+** Socio-economic projections
+
+Obtain the [[https://zenodo.org/records/6016583][RFF socio-economic projections]]
+extract the ~pop_income~ and ~emissions~ datasets to the ~./data_raw/RFF~ directory.
+
+Then integrate historical data with the RFF projections and produce a csv file for each of the 10,000 simulated samples.
+#+begin_src shell :results output :exports both
+python process_gdp_pop_data.py
+python process_emission_data.py
+#+end_src
+
+The output files will be stored in ~./data_processed/gdp_pop~ and ~./data_processed/emissions~ directories.
+
+The following script allows us to visually inspect the generated files:
+#+begin_src shell :results output :exports both
+python plot_rff_projections.py
+#+end_src
+[[output/fig_rff_projections.svg]]
 
 
 ** References
