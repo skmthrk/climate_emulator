@@ -118,6 +118,39 @@ python process_cmip_data.py [--model_id MIROC6]
 #+end_src
 The ~--model_id~ argument allows for specifying a particular climate model, with ~MIROC6~ as the default.
 
+The processed data will be stored in ~./data_processed~ directory.
+
+#+begin_src shell :results output :exports both
+ls ./data_processed | grep MIROC6
+#+end_src
+
+#+RESULTS:
+#+begin_example
+rlut_MIROC6_1pctCO2_r1i1p1f1.csv
+rlut_MIROC6_abrupt-2xCO2_r1i1p1f1.csv
+rlut_MIROC6_abrupt-4xCO2_r1i1p1f1.csv
+rlut_MIROC6_piControl_r1i1p1f1.csv
+rsdt_MIROC6_1pctCO2_r1i1p1f1.csv
+rsdt_MIROC6_abrupt-2xCO2_r1i1p1f1.csv
+rsdt_MIROC6_abrupt-4xCO2_r1i1p1f1.csv
+rsdt_MIROC6_piControl_r1i1p1f1.csv
+rsut_MIROC6_1pctCO2_r1i1p1f1.csv
+rsut_MIROC6_abrupt-2xCO2_r1i1p1f1.csv
+rsut_MIROC6_abrupt-4xCO2_r1i1p1f1.csv
+rsut_MIROC6_piControl_r1i1p1f1.csv
+tas_MIROC6_1pctCO2_r1i1p1f1.csv
+tas_MIROC6_abrupt-2xCO2_r1i1p1f1.csv
+tas_MIROC6_abrupt-4xCO2_r1i1p1f1.csv
+tas_MIROC6_historical_r1i1p1f1.csv
+tas_MIROC6_piControl_r1i1p1f1.csv
+tas_MIROC6_ssp119_r1i1p1f1.csv
+tas_MIROC6_ssp245_r1i1p1f1.csv
+tas_MIROC6_ssp370_r1i1p1f1.csv
+tas_MIROC6_ssp460_r1i1p1f1.csv
+tas_MIROC6_ssp585_r1i1p1f1.csv
+#+end_example
+
+
 ** Plotting experimental data
 
 After preprocessing the CMIP data, visualizations can be generated to examine the results. For example:
