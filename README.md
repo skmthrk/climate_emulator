@@ -13,7 +13,7 @@ python process_cmip_data.py [--model_id MIROC6]
 ```
 The `--model_id` argument allows for specifying a particular climate model, with `MIROC6` as the default.
 
-## Plotting experiment data
+## Plotting experimental data
 
 After preprocessing the CMIP data, visualizations can be generated to examine the results. For example:
 
@@ -45,14 +45,15 @@ Rscript calibrate_emulator.py [MIROC6]
 ```
 The estimated parameter values of the model will be stored in `./output` directory.
 
-カリブレイトされたエミュレータの内的妥当性（`abrupt-4xCO2`）と
-外的妥当性（`historical`，`ssp119`，`ssp245`，`ssp370`，`ssp460`，`ssp585`）を評価：
+Evaluate the internal validity (against `abrupt-4xCO2`)
+and the external validity (against `historical`, `ssp119`, `ssp245`, `ssp370`, `ssp460`, `ssp585`)
+of the calibrated model:
 ```
 python evaluate_emulator.py [--model_id MIROC6]
 ```
-![エミュレータのカリブレーションと性能評価](output/fig_evaluate_emulator.svg)
+![Evaluation of the calibrated model](output/fig_evaluate_emulator.svg)
 
-## 物質循環
+## Gas cycle
 
 Joos et al. (2013)の実験結果（`PI100`，`PD100`，`PI5000`）を用いて線形炭素循環モデルのカリブレーション：
 ```

@@ -219,7 +219,7 @@ def main():
     fig = plot_scenario(var_id, model_id, variant_label)
 
     script_name, _ = os.path.splitext(os.path.basename(__file__))
-    fig.savefig(f'./output/fig_{script_name}.svg')
+    fig.savefig(f'./output/fig_{script_name}_{model_id}.svg')
 
 if __name__ == '__main__':
     main()

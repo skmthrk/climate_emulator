@@ -157,7 +157,7 @@ def main():
 
     # Save the figure
     script_name, _ = os.path.splitext(os.path.basename(__file__))
-    fig.savefig(f'./output/fig_{script_name}.svg')
+    fig.savefig(f'./output/fig_{script_name}_{model_id}.svg')
 
 if __name__ == '__main__':
     main()

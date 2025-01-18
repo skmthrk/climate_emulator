@@ -520,7 +520,7 @@ def main():
     # plot
     fig = plot_figure(model_id, calibration_dataset, cmip_dataset, model_output)
     script_name, _ = os.path.splitext(os.path.basename(__file__))
-    output_file = f'./output/fig_{script_name}.svg'
+    output_file = f'./output/fig_{script_name}_{model_id}.svg'
     fig.savefig(output_file)
 
 if __name__ == '__main__':
