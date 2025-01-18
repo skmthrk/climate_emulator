@@ -41,7 +41,7 @@ The generated figures will be stored in ~./output~ directory.
 The model is a two-layer energy balance model a la [[https://doi.org/10.1175/JCLI-D-19-0589.1][Cummins, Stephenson, Stott (2020)]].
 We calibrate the model based on the ~abrupt-4xCO2~ experiment:
 
-#+begin_src shell
+#+begin_src shell :results output :exports both
 python calibrate_emulator.py [MIROC6]
 #+end_src
 
