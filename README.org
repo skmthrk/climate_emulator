@@ -181,7 +181,7 @@ The generated figures will be stored in ~./output~ directory.
 ** Climate emulator
 
 The model is a two-layer energy balance model a la Cummins et al. (2020).
-We calibrate the model based on the ~abrupt-4xCO2~ experiment:
+I calibrate the model based on the ~abrupt-4xCO2~ experiment:
 
 #+begin_src shell :results output :exports both
 python calibrate_emulator.py [MIROC6]
@@ -276,10 +276,10 @@ For the carbon cycle, linear models adequately represent impulse responses given
 However, these responses are known to be influenced by background concentration levels (Joos et al., 2013),
 meaning that nonlinear feedback mechanisms must also be considered.
 
-We address this through a two-step approach.
-First, we employ a linear model and calibrate the model parameters based on the impulse response experiment of Joos et al. (2013).
+I address this through a two-step approach.
+First, I employ a linear model and calibrate the model parameters based on the impulse response experiment of Joos et al. (2013).
 Then, taking the calibrated carbon cycle parameters given,
-we calibrate the scaling factor as a function of cumulative carbon emission to capture the non-linear feedback effects.
+I calibrate the scaling factor as a function of cumulative carbon emission to capture the non-linear feedback effects.
 
 Let us begin with a four-layer linear carbon cycle model
 and calibrate its parameters using experimental data (~PI100~, ~PD100~, ~PI500~) from Joos et al. (2013).
@@ -311,11 +311,46 @@ cat ./output/parameter_co2_cycle_linear_PD100.csv
 : var_id,delta21,delta31,delta12,delta32,delta13,delta43,delta34
 : co2,0.01854978884905409,0.01206756382904478,0.030861326590195495,1.4799916209866694e-14,0.011842834050843291,0.0022372207337764587,0.0011589024764729959
 
-With the carbon cycle matrix A calibrated as described,
-we incorporate a non-linear scaling factor, exp(gamma0 + gamma1 * M) * A, where M represents cumulative carbon emissions.
-The parameter gamma1 is intended to be negative, reflecting the potential weakening of the carbon cycle as the total carbon in the system increases.
+With the carbon cycle matrix, say A, calibrated as described,
+I incorporate a non-linear scaling factor, exp(-gamma0 - gamma1 * M) * A, where M represents cumulative carbon emissions.
+The parameter gamma1 is intended to be positive, reflecting the potential weakening of the carbon cycle as the total carbon in the system increases.
 
+With gamma0=gamma1=0 (i.e., no feedback adjustment),
+neither of the calibrated linear model (~PD100~, ~PI100~, ~PI5000~)
+can replicate the output of historical/scenario experiments.
 
+I calibrate gamma0 and gamma1
+in such a way that the calibrated non-linear model can
+emulate the output of historical/scenario experiments well:
+
+#+begin_src shell :results output :exports both
+python calibrate_co2_cycle_nonlinear.py
+#+end_src
+[[./output/fig_co2_cycle.svg]]
+
+Again, this generates three different sets of non-linear parameter values,
+each using different linear-model parameter values (~PD100~, ~PI100~, ~PI5000~).
+
+#+begin_src shell :results output :exports both
+ls ./output/parameter_co2_cycle_nonlinear*.csv
+#+end_src
+
+#+RESULTS:
+: ./output/parameter_co2_cycle_nonlinear_PD100.csv
+: ./output/parameter_co2_cycle_nonlinear_PI100.csv
+: ./output/parameter_co2_cycle_nonlinear_PI5000.csv
+
+For example:
+
+#+begin_src shell :results output :exports both
+cat ./output/parameter_co2_cycle_nonlinear_PD100.csv
+#+end_src
+
+#+RESULTS:
+: var_id,gamma0,gamma1
+: co2,-0.6691877083124073,0.0002591773687699655
+
+It looks like the PI5000-based calibration performs best among the three variants considered here.
 
 ** References
 
