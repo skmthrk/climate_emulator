@@ -14,7 +14,7 @@ logger = make_logger()
 matplotlib.rc('axes', lw=0.25, edgecolor='k')
 
 class GasCycleModel:
-    
+
     def __init__(self, data_dir='./data_raw/RCMIP'):
 
         self.data_dir = data_dir
@@ -122,7 +122,7 @@ class GasCycleModel:
         elif var_id == 'n2o':
             m = 1 # number of layers in gas cycle matric
             delta0 = -0.009 # initial guess
-    
+
         deltas = np.zeros(3*3)
         bounds = [(0, 0) for delta in deltas]
         for i in range(m*m):

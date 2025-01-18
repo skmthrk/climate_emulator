@@ -180,7 +180,7 @@ The generated figures will be stored in ~./output~ directory.
 
 ** Climate emulator
 
-The model is a two-layer energy balance model a la [[https://doi.org/10.1175/JCLI-D-19-0589.1][Cummins, Stephenson, Stott (2020)]].
+The model is a two-layer energy balance model a la Cummins et al. (2020).
 We calibrate the model based on the ~abrupt-4xCO2~ experiment:
 
 #+begin_src shell :results output :exports both
@@ -267,6 +267,24 @@ of the calibrated model:
 python evaluate_emulator.py [--model_id MIROC6]
 #+end_src
 [[./output/fig_evaluate_emulator_MIROC6.svg]]
+
+** Gas cycle
+
+*** CO2
+
+First use the 4-layer linear carbon cycle model
+and calibrate the model parameters to match the experimental data (~PI100~, ~PD100~, ~PI500~) of Joos et al. (2013).
+
+#+begin_src shell :results output :exports both
+python calibrate_co2_cycle_linear.py
+#+end_src
+
+This generates three different sets of parameter values.
+
+[[./output/fig_co2_cycle_linear.svg]]
+
+
+
 
 ** References
 
