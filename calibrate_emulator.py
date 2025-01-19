@@ -341,7 +341,7 @@ class Model(object):
         #methods = ['BFGS']
 
         self.methods = methods
-        self.num_attempts = 1
+        self.num_attempts = 3
 
         # initial guess
         if initial_guess is None:
@@ -503,9 +503,32 @@ if __name__ == "__main__":
     var_ids = ['rlut', 'rsut', 'rsdt', 'tas']
     experiment_ids = ['piControl', 'abrupt-4xCO2']
 
+    model_ids = [
+        "MIROC6",
+        "CanESM5",
+        "ACCESS-CM2",
+        "BCC-CSM2-MR",
+        "CESM2",
+        "CMCC-CM2-SR5",
+        "CNRM-CM6-1",
+        "FGOALS-f3-L",
+        "GISS-E2-1-G",
+        "HadGEM3-GC31-LL",
+        "INM-CM5-0",
+        "IPSL-CM6A-LR",
+        "KACE-1-0-G",
+        "MPI-ESM1-2-LR",
+        "MRI-ESM2-0",
+        "NorESM2-LM",
+    ]
+
     # load pre-processed CMIP data
-    model_id = 'MIROC6'
+    model_id = model_ids[15]
     variant_label = 'r1i1p1f1'
+    if model_id in ["CNRM-CM6-1"]:
+        variant_label = 'r1i1p1f2'
+    if model_id in ["HadGEM3-GC31-LL"]:
+        variant_label = 'r1i1p1f3'
 
     dataset = {}
     for experiment_id in experiment_ids:

@@ -463,7 +463,8 @@ def plot_figure(model_id, calibration_dataset, cmip_dataset, model_output):
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(handles[::-1], labels[::-1], title=None, loc='best')
         ax.set_xlim([1840, 2110])
-        ax.set_ylim([-0.4, 4.8])
+        ax.set_ylim([-0.4, 9.5])
+        #ax.set_ylim([-0.4, 4.8])
         set_panel_id(ax, letters[idx])
         for posi in ['top', 'right']:
             ax.spines[posi].set_visible(False)
