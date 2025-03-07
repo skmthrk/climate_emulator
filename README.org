@@ -4,7 +4,9 @@
 
 Retrieve raw CMIP data for surface air temperature (~tas~), incoming shortwave radiation (~rsdt~), outgoing shortwave radiation (~rsut~),
 outgoing longwave radiation (~rlut~), and grid cell area (~areacella~) from the [[https://esgf.llnl.gov/][Earth System Grid Federation]].
-Download data associated with the following experiments: ~piControl~, `abrupt-2xCO2`, `abrupt-4xCO2`, ~1pctCO2~, ~historical~, ~ssp119~, ~ssp245~, ~ssp370~, ~ssp460~, and ~ssp585~.
+Download data associated with the following experiments: ~piControl~, ~abrupt-2xCO2~, ~abrupt-4xCO2~, ~1pctCO2~, ~historical~, ~ssp119~, ~ssp245~, ~ssp370~, ~ssp460~, and ~ssp585~.
+For a simple implementation of cmip data retrieval, see [[https://github.com/skmthrk/cmip_climate_data_retrieval][this repository]].
+
 Save the downloaded files to the ~./data_raw/CMIP6~ directory.
 
 #+begin_src shell :results output :exports both
